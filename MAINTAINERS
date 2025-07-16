@@ -13,18 +13,19 @@ Maintainers are responsible for:
 
 ### Lead Maintainers
 * OVHcloud TechLabs Team
-  - Email: techlabs@ovhcloud.com
   - GitHub: @ovhcloud/techlabs
   - Responsibilities: Overall project direction, releases, architecture decisions
 
+* Tim Seiffert
+  - Email: Tim.Seiffert@ovhcloud.com
+  - Responsibilities: Platform development and technical architecture
+
 ### Platform Maintainers
 * Platform Team
-  - Email: techlabs-platform@ovhcloud.com
   - Responsibilities: Backend API, infrastructure automation, deployment tools
 
 ### Workbooks Maintainers  
 * Content Team
-  - Email: techlabs-content@ovhcloud.com
   - Responsibilities: Tutorial content, documentation, workshop materials
 
 ## Emeritus Maintainers
@@ -53,4 +54,3 @@ We welcome new maintainers! If you're interested in becoming a maintainer:
 
 For questions about maintenance or to report issues with maintainer response:
 - Open an issue in the repository
-- Email: techlabs@ovhcloud.com
