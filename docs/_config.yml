@@ -1,0 +1,24 @@
+# Jekyll configuration for GitHub Pages
+# This redirects to the MkDocs site built by GitHub Actions
+
+title: OVHcloud TechLabs
+description: Technical workshops and tutorials for OVHcloud services
+
+# Use GitHub Pages compatible theme
+theme: minima
+
+# Exclude these files from processing
+exclude:
+  - README.md
+  - Gemfile
+  - Gemfile.lock
+  - node_modules
+  - vendor
+
+# Redirect to MkDocs site
+plugins:
+  - jekyll-redirect-from
+
+# Base URL for GitHub Pages
+baseurl: ""
+url: "https://ovhcloud.github.io/ovh-techlabs"
