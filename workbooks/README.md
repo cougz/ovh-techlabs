@@ -4,8 +4,8 @@ A comprehensive collection of tutorials and workbooks for OVHcloud TechLabs.
 
 ## Quick Links
 
-- **Documentation Site**: [https://cougz.github.io/ovhcloud-workbooks/](https://cougz.github.io/ovhcloud-workbooks/)
-- **Source Repository**: [https://github.com/cougz/ovhcloud-workbooks](https://github.com/cougz/ovhcloud-workbooks)
+- **Documentation Site**: [https://ovhcloud.github.io/ovh-techlabs/](https://ovhcloud.github.io/ovh-techlabs/)
+- **Source Repository**: [https://github.com/ovhcloud/ovh-techlabs](https://github.com/ovhcloud/ovh-techlabs)
 
 ## Available Workbooks
 
@@ -19,13 +19,13 @@ A comprehensive collection of tutorials and workbooks for OVHcloud TechLabs.
 This repository uses MkDocs with the Material theme to generate documentation. To run locally:
 
 ```bash
-pip install mkdocs-material pymdown-extensions
+pip install -r requirements.txt
 mkdocs serve
 ```
 
 ## Deployment
 
-The documentation is automatically deployed to GitHub Pages when changes are pushed to the main branch.
+The documentation is automatically deployed to GitHub Pages using GitHub Actions when changes are pushed to the main branch or workbooks directory. The workflow builds the MkDocs site and publishes it to `https://ovhcloud.github.io/ovh-techlabs/`.
 
 ## Contributing
 

@@ -1,4 +1,4 @@
-# OVHcloud TechLabs
+# OVHcloud TechLabs - Official Event Source Code
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 [![Python 3.11+](https://img.shields.io/badge/python-3.11+-blue.svg)](https://www.python.org/downloads/release/python-311/)
@@ -6,15 +6,15 @@
 [![Docker](https://img.shields.io/badge/docker-required-blue.svg)](https://www.docker.com/)
 [![Project Status: Main](https://img.shields.io/badge/Project%20Status-Main%20Project-green.svg)](https://github.com/ovhcloud/ovh-techlabs)
 
-A comprehensive ecosystem for running technical workshops on OVHcloud infrastructure, combining automated environment provisioning with hands-on tutorial content.
+🚀 **Official source code repository for the OVHcloud TechLabs event** - An invitation-only technical workshop series showcasing OVHcloud's cloud capabilities through hands-on labs and automated infrastructure.
 
 ## 📊 Project Status
 
-**Main Project** - This project is under active maintenance and is a core component of OVHcloud's technical enablement strategy.
+**Main Project** - This repository contains the production code used to run official OVHcloud TechLabs events worldwide. It is actively maintained as part of OVHcloud's technical enablement and partner education initiatives.
 
-## 🎯 Overview
+## 🎯 About OVHcloud TechLabs
 
-OVHcloud TechLabs provides everything needed to run successful technical workshops:
+OVHcloud TechLabs is our flagship technical workshop event designed to provide hands-on experience with OVHcloud services. This repository contains the complete platform used to deliver these events:
 
 - **Automated Infrastructure**: Deploy isolated cloud environments for each workshop attendee
 - **Workshop Content**: Step-by-step tutorials and workbooks for various OVHcloud services
@@ -120,6 +120,17 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 
 OVHcloud is a global cloud provider that delivers industry-leading performance and cost-effective solutions to better manage, secure, and scale data.
 
+## 🎪 TechLabs Events
+
+OVHcloud TechLabs events are invitation-only technical workshops hosted at OVHcloud facilities and partner locations worldwide. Each event features:
+
+- Expert-led sessions on cloud technologies
+- Hands-on labs with real OVHcloud infrastructure
+- Individual cloud environments for each attendee
+- Networking opportunities with OVHcloud engineers
+
+This source code powers the automation and content delivery for these exclusive events.
+
 ---
 
-For support and questions, please open an issue or contact the TechLabs team.
+For support and questions about the TechLabs platform code, please open an issue. For event inquiries, contact the OVHcloud TechLabs team.

@@ -52,7 +52,6 @@ theme:
     - search.suggest
     - search.share
   logo: assets/ovhcloud.svg
-  favicon: assets/favicon.png
 
 # Plugins
 plugins:
