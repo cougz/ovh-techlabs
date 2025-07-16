@@ -1,0 +1,105 @@
+site_name: OVHcloud TechLabs - Workbooks
+site_description: Comprehensive tutorials and workbooks for OVHcloud TechLabs
+site_url: https://ovhcloud.github.io/ovh-techlabs
+
+# Repository
+repo_name: ovhcloud/ovh-techlabs
+repo_url: https://github.com/ovhcloud/ovh-techlabs
+
+# Copyright
+copyright: Copyright &copy; 2025 OVHcloud
+
+extra:
+  generator: false
+  social:
+  - icon: fontawesome/brands/linkedin 
+    link: https://www.linkedin.com/company/ovhgroup/
+
+
+# Configuration
+theme:
+  name: material
+  language: en
+  palette:
+    # Light mode
+    - media: "(prefers-color-scheme: light)"
+      scheme: default
+      primary: blue
+      accent: blue
+      toggle:
+        icon: material/brightness-7
+        name: Switch to dark mode
+    # Dark mode
+    - media: "(prefers-color-scheme: dark)"
+      scheme: slate
+      primary: blue
+      accent: light blue
+      toggle:
+        icon: material/brightness-4
+        name: Switch to light mode
+  features:
+    - navigation.tabs
+    - navigation.sections
+    - navigation.expand
+    - navigation.top
+    - search.highlight
+    - content.code.copy
+    - navigation.indexes
+    - content.tabs.link
+    - navigation.instant
+    - navigation.tracking
+    - navigation.footer
+    - search.suggest
+    - search.share
+  logo: assets/ovhcloud.svg
+  favicon: assets/favicon.png
+
+# Plugins
+plugins:
+  - search
+
+# Extra configuration
+extra:
+  social:
+    - icon: fontawesome/brands/github
+      link: https://github.com/ovhcloud/ovh-techlabs
+    - icon: fontawesome/brands/twitter
+      link: https://twitter.com/ovhcloud
+    - icon: fontawesome/brands/linkedin
+      link: https://www.linkedin.com/company/ovhcloud/
+
+# Extensions
+markdown_extensions:
+  - pymdownx.highlight:
+      anchor_linenums: true
+  - pymdownx.inlinehilite
+  - pymdownx.snippets
+  - pymdownx.superfences:
+      custom_fences:
+        - name: mermaid
+          class: mermaid
+          format: !!python/name:pymdownx.superfences.fence_code_format
+  - admonition
+  - pymdownx.details
+  - attr_list
+  - md_in_html
+  - pymdownx.tasklist:
+      custom_checkbox: true
+  - pymdownx.tabbed:
+      alternate_style: true
+  - pymdownx.emoji:
+      emoji_index: !!python/name:material.extensions.emoji.twemoji
+      emoji_generator: !!python/name:material.extensions.emoji.to_svg
+
+nav:
+  - Home: index.md
+  - Public Cloud:
+    - Overview: public-cloud/index.md
+    - AI Endpoints:
+      - Overview: public-cloud/ai-endpoints/index.md
+      - RAG Tutorial:
+        - Overview: public-cloud/ai-endpoints/rag-tutorial/index.md
+        - Setup Guide: public-cloud/ai-endpoints/rag-tutorial/setup-guide.md
+      - VLM Tutorial:
+        - Overview: public-cloud/ai-endpoints/vlm-tutorial-car-damage-verfication/index.md
+        - Setup Guide: public-cloud/ai-endpoints/vlm-tutorial-car-damage-verfication/setup-guide.md
