@@ -1,4 +1,4 @@
-name: Deploy MkDocs to GitHub Pages
+name: Deploy MkDocs Material to GitHub Pages
 
 on:
   push:
@@ -27,21 +27,31 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
         
       - name: Setup Python
         uses: actions/setup-python@v4
         with:
           python-version: '3.11'
           
+      - name: Cache pip dependencies
+        uses: actions/cache@v3
+        with:
+          path: ~/.cache/pip
+          key: ${{ runner.os }}-pip-${{ hashFiles('**/requirements.txt') }}
+          restore-keys: |
+            ${{ runner.os }}-pip-
+          
       - name: Install dependencies
         run: |
           cd workbooks
           pip install -r requirements.txt
           
-      - name: Build MkDocs
+      - name: Build MkDocs with Material theme
         run: |
           cd workbooks
-          mkdocs build --strict
+          mkdocs build --strict --verbose
           
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v3
