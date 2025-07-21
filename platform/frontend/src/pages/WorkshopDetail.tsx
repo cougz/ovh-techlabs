@@ -451,6 +451,22 @@ const WorkshopDetail: React.FC = () => {
     });
   };
 
+  const formatDeletionDate = (dateString: string) => {
+    try {
+      return new Date(dateString).toLocaleDateString('en-US', {
+        year: 'numeric',
+        month: 'long',
+        day: 'numeric',
+        hour: 'numeric',
+        minute: '2-digit',
+        hour12: true
+      });
+    } catch (error) {
+      console.error('Invalid deletion date:', dateString, error);
+      return 'Invalid date';
+    }
+  };
+
   const activeAttendees = attendees.filter(a => a.status === 'active').length;
   const failedAttendees = attendees.filter(a => a.status === 'failed').length;
 
@@ -695,6 +711,13 @@ const WorkshopDetail: React.FC = () => {
                         {attendee.ovh_project_id && (
                           <p className="text-xs text-gray-400">
                             Project: {attendee.ovh_project_id}
+                          </p>
+                        )}
+                        
+                        {/* Deletion scheduled date */}
+                        {attendee.deletion_scheduled_at && (
+                          <p className="text-xs text-amber-600 dark:text-amber-400">
+                            Will be deleted on {formatDeletionDate(attendee.deletion_scheduled_at)}
                           </p>
                         )}
                         

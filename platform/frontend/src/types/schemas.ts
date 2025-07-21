@@ -57,6 +57,7 @@ export const AttendeeSchema = z.object({
   status: AttendeeStatusSchema,
   created_at: DateTimeSchema,
   updated_at: DateTimeSchema,
+  deletion_scheduled_at: DateTimeSchema.optional(),
 });
 
 export const AttendeeCredentialsSchema = z.object({
