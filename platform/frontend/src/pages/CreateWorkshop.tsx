@@ -5,11 +5,14 @@ import {
   CalendarIcon,
   ClockIcon,
   InformationCircleIcon,
-  ExclamationTriangleIcon
+  ExclamationTriangleIcon,
+  UserGroupIcon,
+  DocumentTextIcon
 } from '@heroicons/react/24/outline';
 
-import { workshopApi } from '../services/api';
-import { CreateWorkshopRequest } from '../types';
+import { workshopApi, attendeeApi } from '../services/api';
+import { CreateWorkshopRequest, CreateAttendeeRequest } from '../types';
+import { parseCsvAttendees, validateAttendeeData, CsvAttendeeData, CsvParseError, CsvValidationError } from '../utils/csvImport';
 
 interface FormData {
   name: string;
@@ -24,6 +27,19 @@ interface FormErrors {
   start_date?: string;
   end_date?: string;
   general?: string;
+  csv?: string;
+}
+
+interface AttendeeData {
+  username: string;
+  email: string;
+}
+
+interface BulkImportProgress {
+  isImporting: boolean;
+  completed: number;
+  total: number;
+  errors: Array<{ attendee: string; error: string }>;
 }
 
 const CreateWorkshop: React.FC = () => {
@@ -38,12 +54,29 @@ const CreateWorkshop: React.FC = () => {
   });
   
   const [errors, setErrors] = useState<FormErrors>({});
+  const [isBulkImport, setIsBulkImport] = useState(false);
+  const [csvData, setCsvData] = useState('');
+  const [parsedAttendees, setParsedAttendees] = useState<CsvAttendeeData[]>([]);
+  const [csvErrors, setCsvErrors] = useState<(CsvParseError | CsvValidationError)[]>([]);
+  const [individualAttendee, setIndividualAttendee] = useState<AttendeeData>({ username: '', email: '' });
+  const [bulkImportProgress, setBulkImportProgress] = useState<BulkImportProgress>({
+    isImporting: false,
+    completed: 0,
+    total: 0,
+    errors: []
+  });
 
   const createWorkshopMutation = useMutation(
     (data: CreateWorkshopRequest) => workshopApi.createWorkshop(data),
     {
-      onSuccess: (workshop) => {
+      onSuccess: async (workshop) => {
         queryClient.invalidateQueries('workshops');
+        
+        // Handle bulk import if enabled
+        if (isBulkImport && parsedAttendees.length > 0) {
+          await handleBulkAttendeeCreation(workshop.id);
+        }
+        
         navigate(`/workshops/${workshop.id}`);
       },
       onError: (error: any) => {
@@ -54,6 +87,89 @@ const CreateWorkshop: React.FC = () => {
       }
     }
   );
+
+  const handleCsvDataChange = (value: string) => {
+    setCsvData(value);
+    
+    if (!value.trim()) {
+      setParsedAttendees([]);
+      setCsvErrors([]);
+      // Clear CSV errors when empty
+      if (errors.csv) {
+        setErrors(prev => ({ ...prev, csv: undefined }));
+      }
+      return;
+    }
+    
+    const parseResult = parseCsvAttendees(value);
+    
+    if (!parseResult.success) {
+      setCsvErrors(parseResult.errors);
+      setParsedAttendees([]);
+      return;
+    }
+    
+    const validationResult = validateAttendeeData(parseResult.data);
+    
+    if (!validationResult.success) {
+      setCsvErrors(validationResult.errors);
+      setParsedAttendees([]);
+      return;
+    }
+    
+    // Clear errors if validation passes
+    setCsvErrors([]);
+    setParsedAttendees(validationResult.data);
+    
+    // Clear CSV form errors when CSV becomes valid
+    if (errors.csv) {
+      setErrors(prev => ({ ...prev, csv: undefined }));
+    }
+  };
+
+  const handleBulkAttendeeCreation = async (workshopId: string) => {
+    if (parsedAttendees.length === 0) return;
+    
+    setBulkImportProgress({
+      isImporting: true,
+      completed: 0,
+      total: parsedAttendees.length,
+      errors: []
+    });
+    
+    const errors: Array<{ attendee: string; error: string }> = [];
+    let completed = 0;
+    
+    for (const attendee of parsedAttendees) {
+      try {
+        const attendeeData: CreateAttendeeRequest = {
+          username: attendee.username,
+          email: attendee.email,
+          workshop_id: workshopId
+        };
+        
+        await attendeeApi.createAttendee(attendeeData);
+        completed++;
+        
+        setBulkImportProgress(prev => ({
+          ...prev,
+          completed
+        }));
+      } catch (error: any) {
+        const errorMessage = error.response?.data?.detail || 'Failed to create attendee';
+        errors.push({
+          attendee: `${attendee.username} (${attendee.email})`,
+          error: errorMessage
+        });
+      }
+    }
+    
+    setBulkImportProgress(prev => ({
+      ...prev,
+      isImporting: false,
+      errors
+    }));
+  };
 
   const validateForm = (): boolean => {
     const newErrors: FormErrors = {};
@@ -100,6 +216,19 @@ const CreateWorkshop: React.FC = () => {
       
       if (hours > 720) { // 30 days
         newErrors.end_date = 'Workshop cannot be longer than 30 days';
+      }
+    }
+    
+    // Validate CSV if bulk import is enabled
+    if (isBulkImport) {
+      if (!csvData.trim()) {
+        newErrors.csv = 'CSV data is required for bulk import';
+      } else if (csvErrors.length > 0) {
+        const errorCount = csvErrors.length;
+        const errorText = errorCount === 1 ? 'error' : 'errors';
+        newErrors.csv = `Please fix ${errorCount} ${errorText} in the CSV data`;
+      } else if (parsedAttendees.length === 0) {
+        newErrors.csv = 'No valid attendees found in CSV data';
       }
     }
     
@@ -303,6 +432,197 @@ const CreateWorkshop: React.FC = () => {
                   </div>
                 </div>
               </div>
+            </div>
+          </div>
+
+          <div className="card">
+            <div className="card-header">
+              <h3 className="text-lg font-medium text-gray-900 dark:text-gray-100">Attendees</h3>
+            </div>
+            <div className="card-body space-y-6">
+              {/* Bulk Import Toggle */}
+              <div className="flex items-center justify-between">
+                <div>
+                  <h4 className="text-sm font-medium text-gray-900 dark:text-gray-100">Import Method</h4>
+                  <p className="text-sm text-gray-500 dark:text-gray-400">
+                    Choose how you want to add attendees to this workshop
+                  </p>
+                </div>
+                <div className="flex items-center space-x-3">
+                  <span className={`text-sm ${!isBulkImport ? 'text-gray-900 dark:text-gray-100 font-medium' : 'text-gray-500 dark:text-gray-400'}`}>
+                    Individual
+                  </span>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setIsBulkImport(!isBulkImport);
+                      // Clear CSV data when switching modes
+                      if (isBulkImport) {
+                        setCsvData('');
+                        setParsedAttendees([]);
+                        setCsvErrors([]);
+                      }
+                      // Clear individual attendee data when switching to bulk
+                      if (!isBulkImport) {
+                        setIndividualAttendee({ username: '', email: '' });
+                      }
+                    }}
+                    className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2 ${
+                      isBulkImport ? 'bg-primary-600' : 'bg-gray-200'
+                    }`}
+                  >
+                    <span
+                      className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${
+                        isBulkImport ? 'translate-x-6' : 'translate-x-1'
+                      }`}
+                    />
+                  </button>
+                  <span className={`text-sm ${isBulkImport ? 'text-gray-900 dark:text-gray-100 font-medium' : 'text-gray-500 dark:text-gray-400'}`}>
+                    Bulk Import
+                  </span>
+                </div>
+              </div>
+
+              {isBulkImport ? (
+                /* Bulk Import Section */
+                <div className="space-y-4">
+                  <div>
+                    <label htmlFor="csvData" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                      CSV Data
+                    </label>
+                    <textarea
+                      id="csvData"
+                      rows={8}
+                      value={csvData}
+                      onChange={(e) => handleCsvDataChange(e.target.value)}
+                      className={`block w-full rounded-md border-gray-300 shadow-sm focus:border-primary-500 focus:ring-primary-500 sm:text-sm font-mono ${
+                        errors.csv || csvErrors.length > 0 ? 'border-danger-300 focus:border-danger-500 focus:ring-danger-500' : ''
+                      }`}
+                      placeholder="Max.Mustermann,Max.Mustermann@techlab.ovh&#10;John.Doe,john.doe@example.com&#10;Jane.Smith,jane.smith@example.com"
+                    />
+                    {errors.csv && (
+                      <p className="mt-2 text-sm text-danger-600">{errors.csv}</p>
+                    )}
+                    <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">
+                      Format: username,email (one attendee per line). {parsedAttendees.length > 0 && `${parsedAttendees.length} valid attendees found.`}
+                    </p>
+                  </div>
+
+                  {/* CSV Errors */}
+                  {csvErrors.length > 0 && (
+                    <div className="bg-danger-50 border border-danger-200 rounded-md p-4">
+                      <div className="flex">
+                        <ExclamationTriangleIcon className="h-5 w-5 text-danger-400 mr-2 mt-0.5 flex-shrink-0" />
+                        <div className="w-full">
+                          <h4 className="text-sm font-medium text-danger-800">CSV Validation Errors</h4>
+                          <div className="mt-2 text-sm text-danger-700">
+                            <ul className="list-disc list-inside space-y-1">
+                              {csvErrors.map((error, index) => (
+                                <li key={index}>
+                                  Line {error.lineNumber}: {error.message}
+                                  {'field' in error && ` (${error.field}: "${error.value}")`}
+                                  {'line' in error && ` - "${error.line}"`}
+                                </li>
+                              ))}
+                            </ul>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Bulk Import Progress */}
+                  {bulkImportProgress.isImporting && (
+                    <div className="bg-primary-50 border border-primary-200 rounded-md p-4">
+                      <div className="flex">
+                        <UserGroupIcon className="h-5 w-5 text-primary-400 mr-2 mt-0.5" />
+                        <div>
+                          <h4 className="text-sm font-medium text-primary-800">Creating Attendees</h4>
+                          <p className="text-sm text-primary-700 mt-1">
+                            Progress: {bulkImportProgress.completed} of {bulkImportProgress.total} attendees created
+                          </p>
+                          <div className="w-full bg-primary-200 rounded-full h-2 mt-2">
+                            <div 
+                              className="bg-primary-600 h-2 rounded-full transition-all duration-300" 
+                              style={{ width: `${(bulkImportProgress.completed / bulkImportProgress.total) * 100}%` }}
+                            />
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Bulk Import Errors */}
+                  {bulkImportProgress.errors.length > 0 && (
+                    <div className="bg-danger-50 border border-danger-200 rounded-md p-4">
+                      <div className="flex">
+                        <ExclamationTriangleIcon className="h-5 w-5 text-danger-400 mr-2 mt-0.5 flex-shrink-0" />
+                        <div className="w-full">
+                          <h4 className="text-sm font-medium text-danger-800">
+                            Failed to create {bulkImportProgress.errors.length} attendee(s)
+                          </h4>
+                          <div className="mt-2 text-sm text-danger-700">
+                            <ul className="list-disc list-inside space-y-1">
+                              {bulkImportProgress.errors.map((error, index) => (
+                                <li key={index}>
+                                  {error.attendee}: {error.error}
+                                </li>
+                              ))}
+                            </ul>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Parsed Attendees Preview */}
+                  {parsedAttendees.length > 0 && csvErrors.length === 0 && (
+                    <div className="bg-success-50 border border-success-200 rounded-md p-4">
+                      <div className="flex">
+                        <UserGroupIcon className="h-5 w-5 text-success-400 mr-2 mt-0.5" />
+                        <div>
+                          <h4 className="text-sm font-medium text-success-800">Ready to Import</h4>
+                          <p className="text-sm text-success-700 mt-1">
+                            {parsedAttendees.length} attendee(s) will be created after the workshop is set up.
+                          </p>
+                          <div className="mt-2 text-sm text-success-600">
+                            <details className="cursor-pointer">
+                              <summary className="font-medium hover:text-success-800">
+                                Preview attendees ({parsedAttendees.length})
+                              </summary>
+                              <ul className="mt-2 list-disc list-inside space-y-1 ml-4">
+                                {parsedAttendees.slice(0, 10).map((attendee, index) => (
+                                  <li key={index}>
+                                    {attendee.username} ({attendee.email})
+                                  </li>
+                                ))}
+                                {parsedAttendees.length > 10 && (
+                                  <li className="text-success-500">
+                                    ... and {parsedAttendees.length - 10} more
+                                  </li>
+                                )}
+                              </ul>
+                            </details>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  )}
+                </div>
+              ) : (
+                /* Individual Attendee Section */
+                <div className="bg-primary-50 border border-primary-200 rounded-md p-4">
+                  <div className="flex">
+                    <InformationCircleIcon className="h-5 w-5 text-primary-400 mr-2 mt-0.5" />
+                    <div>
+                      <h4 className="text-sm font-medium text-primary-800">Add Attendees Later</h4>
+                      <p className="text-sm text-primary-700 mt-1">
+                        You can add attendees individually after creating the workshop. Go to the workshop details page to manage attendees.
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              )}
             </div>
           </div>
 
