@@ -22,6 +22,9 @@
 - Deployed production-ready Docker environment
 - **RESOLVED: OVH API integration fully operational with new account credentials**
 - Successful deployment test creating real OVH Cloud Project (ID: 309981a2a4d1494fa2bbf6bba30cada0)
+- **VERIFIED: All placeholder formats are OVH-compliant and consistent across forms**
+- CSV bulk import and individual attendee forms use proper dash-separated username formats
+- No mailto: prefixes in CSV placeholders, ensuring clean format examples for users
 
 ## Codebase Structure
 
@@ -228,6 +231,11 @@ techlabs-automation/
   - Description: Update IAM policy name format and description to include username and PCI project information
   - Completed: July 21, 2025
   - Notes: IAM POLICY IMPROVEMENTS COMPLETE: Enhanced IAM policy naming and descriptions for better clarity and compliance. Updated IAM policy name format from simple sanitized username to 'access-grant-for-pci-project-{sanitized-username}' for better identification. Updated policy description from generic 'Policy for {username}' to descriptive 'Grants access to {username} for PCI project {project-id}' including both username and actual project ID. These changes provide more context and traceability for IAM policies while maintaining OVH naming compliance. Updated test expectations to match new format.
+
+- [x] **Task ID: PLACEHOLDER-FORMAT-VERIFICATION-001**
+  - Description: Verify and fix CSV bulk import preview text and individual attendee form placeholders for OVH compliance
+  - Completed: July 21, 2025
+  - Notes: PLACEHOLDER FORMAT VERIFICATION COMPLETE: Comprehensive validation confirmed all placeholder formats are already OVH-compliant and consistent. CSV bulk import textarea shows 'Max-Mustermann,max-mustermann@techlab.ovh' without mailto: prefix, individual attendee form shows 'john-doe' and 'john-doe@example.com' with consistent dash formatting. All username formats avoid dots, spaces, and special characters, ensuring compatibility with OVH IAM policy naming requirements. CSV import functionality tested and confirmed working with username,email format. All existing validation tests (21 tests) passing, ensuring format consistency across all form fields.
 
 ## Important Context
 
