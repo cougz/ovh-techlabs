@@ -78,6 +78,7 @@ const WorkshopDetail: React.FC = () => {
   const [newAttendee, setNewAttendee] = useState({ username: '', email: '' });
   const [deploymentProgress] = useState<Record<string, { progress: number; step: string }>>({});
   const [isExporting, setIsExporting] = useState(false);
+  const [isCleanupInProgress, setIsCleanupInProgress] = useState(false);
   const attendeeTriggerRefs = useRef<Record<string, HTMLButtonElement | null>>({});
 
   // WebSocket for real-time updates
@@ -193,13 +194,18 @@ const WorkshopDetail: React.FC = () => {
   const cleanupWorkshopMutation = useMutation(
     () => workshopApi.cleanupWorkshop(id!),
     {
+      onMutate: () => {
+        setIsCleanupInProgress(true);
+      },
       onSuccess: () => {
         queryClient.invalidateQueries(['workshop', id]);
         refetchAttendees();
+        setIsCleanupInProgress(false);
       },
       onError: (error: any) => {
         console.error('Failed to cleanup workshop:', error);
         alert('Failed to cleanup workshop: ' + (error.response?.data?.detail || 'Unknown error'));
+        setIsCleanupInProgress(false);
       }
     }
   );
@@ -269,8 +275,16 @@ const WorkshopDetail: React.FC = () => {
   };
 
   const handleCleanupWorkshop = () => {
-    if (window.confirm('This will destroy all workshop resources. Are you sure?')) {
+    if (isCleanupInProgress) {
+      return; // Prevent multiple clicks
+    }
+    setIsCleanupInProgress(true);
+    
+    const confirmed = window.confirm('This will destroy all workshop resources. Are you sure?');
+    if (confirmed) {
       cleanupWorkshopMutation.mutate();
+    } else {
+      setIsCleanupInProgress(false); // Reset if user cancels
     }
   };
 
@@ -482,11 +496,11 @@ const WorkshopDetail: React.FC = () => {
               {(workshop.status === 'active' || workshop.status === 'completed') && (
                 <button
                   onClick={handleCleanupWorkshop}
-                  disabled={cleanupWorkshopMutation.isLoading}
+                  disabled={isCleanupInProgress}
                   className="btn-danger whitespace-nowrap"
                 >
                   <StopIcon className="h-4 w-4 mr-2" />
-                  {cleanupWorkshopMutation.isLoading ? 'Cleaning up...' : 'Cleanup Resources'}
+                  {isCleanupInProgress ? 'Cleaning up...' : 'Cleanup Resources'}
                 </button>
               )}
               
