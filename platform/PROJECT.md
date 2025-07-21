@@ -209,6 +209,11 @@ techlabs-automation/
   - Completed: July 21, 2025
   - Notes: CELERY HEALTH FIX COMPLETE: Fixed improper health check configuration that was causing Celery containers to show as unhealthy despite working correctly. Root cause was hardcoded HTTP health check in Dockerfile inherited by all containers. Fixed by: removing hardcoded HEALTHCHECK from Dockerfile, adding proper Celery worker health check using 'celery -A main.celery inspect ping', adding Celery beat health check using Python process verification, configuring health checks per service in docker-compose.yml with 40s start_period. Celery Worker now shows as healthy, both containers fully functional. This resolves the Docker health state issues where containers appeared unhealthy but were processing tasks correctly.
 
+- [x] **Task ID: TERRAFORM-NAMING-FIX-001**
+  - Description: Fix Terraform resource naming format to comply with OVH IAM policy naming requirements
+  - Completed: July 21, 2025
+  - Notes: TERRAFORM NAMING FIX COMPLETE: Fixed OVH IAM policy naming error that occurred with usernames containing special characters like dots, spaces, and @ symbols. Root cause was using raw usernames for IAM policy names which violates OVH naming rules (alphanumeric and -, /, _, + only). Fixed by: adding sanitized_username local variable in Terraform template that converts to lowercase and replaces dots, spaces, @ symbols with dashes, updating ovh_iam_policy resource to use sanitized name while preserving original username for descriptions and login. Example: 'Max.Mustermann' becomes 'max-mustermann' for policy naming. Resolves "Policy name is not formatted properly" error while maintaining user-friendly display names. Comprehensive test suite added to validate sanitization logic.
+
 ## Important Context
 
 ### Known Issues
@@ -296,12 +301,13 @@ techlabs-automation/
 - **Form mode switching**: When switching between different form modes (individual vs bulk), clear all mode-specific state to prevent confusion. Reset form data, errors, and validation state when changing modes.
 - **Test data factories**: Create factory functions with optional overrides for consistent test data generation. Use Partial<T> types for override parameters to maintain type safety while allowing flexible test setup.
 - **Dark mode inline class conflicts**: Adding inline dark mode classes (dark:bg-slate-800, dark:border-2, etc.) to components that already have CSS-based dark mode styling creates visual conflicts and nested container effects. Always prefer CSS-based theming (.dark .card) over inline Tailwind dark classes. Inline dark classes should only be used for text colors and specific styling that can't be handled by base CSS selectors. This prevents "double border" and "nested container" visual problems in dark mode.
+- **OVH IAM policy naming restrictions**: OVH IAM policy names must only contain alphanumeric characters and -, /, _, + symbols. Usernames with dots, spaces, @ symbols, or other special characters will cause "Policy name is not formatted properly" errors. Always sanitize usernames for resource naming by replacing invalid characters with dashes and converting to lowercase. Use local variables in Terraform to create sanitized versions while preserving original usernames for descriptions and login purposes. Example transformation: 'Max.Mustermann@domain.com' → 'max-mustermann-at-domain-com'.
 
 ## Next Session Starting Point
 
-**Priority**: Docker health states fixed  
-**Current State**: Production deployment fully verified, timezone-aware dates implemented, template system completed, OVH corporate branding implemented with standalone logo design, dark mode functionality with animated theme switch, application title restored in main header, comprehensive dark mode implementation across all pages, CSV bulk import functionality added to workshop creation, Dashboard dark mode UI inconsistencies fixed, Docker container health issues resolved with database schema fix
-**Next Action**: System ready for production use with complete feature set including bulk attendee import, clean dark mode UI, and stable Docker deployment
+**Priority**: Terraform resource naming fixed  
+**Current State**: Production deployment fully verified, timezone-aware dates implemented, template system completed, OVH corporate branding implemented with standalone logo design, dark mode functionality with animated theme switch, application title restored in main header, comprehensive dark mode implementation across all pages, CSV bulk import functionality added to workshop creation, Dashboard dark mode UI inconsistencies fixed, Docker container health issues resolved with database schema fix, Terraform resource naming issues resolved for OVH IAM policy compliance
+**Next Action**: System ready for production use with complete feature set including bulk attendee import, clean dark mode UI, stable Docker deployment, and compliant resource naming
 
 ## Commands Reference
 

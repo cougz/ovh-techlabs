@@ -309,6 +309,13 @@ variable "user_email" {
   type = string
 }
 
+# Local values for sanitized resource names
+locals {
+  # Sanitize username for OVH resource names (alphanumeric, -, /, _, + only)
+  # Replace dots, spaces, @ symbols, and any other invalid characters with dashes
+  sanitized_username = lower(replace(replace(replace(var.username, ".", "-"), " ", "-"), "@", "-at-"))
+}
+
 # Get account info for subsidiary
 data "ovh_me" "myaccount" {}
 
@@ -348,7 +355,7 @@ resource "ovh_me_identity_user" "workshop_user" {
 
 # Create IAM policy
 resource "ovh_iam_policy" "workshop_policy" {
-  name        = var.username
+  name        = local.sanitized_username
   description = "Policy for ${var.username}"
   identities  = [ovh_me_identity_user.workshop_user.urn]
   resources   = [ovh_cloud_project.workshop_project.urn]
