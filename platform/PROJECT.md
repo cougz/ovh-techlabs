@@ -335,14 +335,14 @@ techlabs-automation/
 ## Commands Reference
 
 ```bash
-# Start development environment
-docker compose -f docker-compose.dev.yml up
+# Start development environment (from platform directory)
+cd platform && docker compose -f docker-compose.dev.yml up
 
-# Start production environment
-docker compose up
+# Start production environment (from platform directory)
+cd platform && docker compose up
 
-# Run comprehensive tests
-python3 api/tests/test_full_deployment.py
+# Run comprehensive tests (from platform directory)
+cd platform && python3 api/tests/test_full_deployment.py
 
 # Check system health
 curl http://localhost/health
@@ -356,14 +356,14 @@ docker logs ovh-techlabs-celery-worker
 # Database backup
 docker exec ovh-techlabs-postgres pg_dump -U admin techlabs > backup_$(date +%Y%m%d).sql
 
-# Run frontend tests
-cd frontend && npm test
+# Run frontend tests (from platform directory)
+cd platform/frontend && npm test
 
-# Run frontend linting
-cd frontend && npm run lint
+# Run frontend linting (from platform directory)
+cd platform/frontend && npm run lint
 
-# Build frontend
-cd frontend && npm run build
+# Build frontend (from platform directory)
+cd platform/frontend && npm run build
 ```
 
 ## Update Log
