@@ -6,8 +6,7 @@ import {
   ClockIcon,
   InformationCircleIcon,
   ExclamationTriangleIcon,
-  UserGroupIcon,
-  DocumentTextIcon
+  UserGroupIcon
 } from '@heroicons/react/24/outline';
 
 import { workshopApi, attendeeApi } from '../services/api';

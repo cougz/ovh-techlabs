@@ -9,7 +9,7 @@
 
 ## Current Status
 
-**Last Updated**: July 9, 2025
+**Last Updated**: July 21, 2025
 **Current Phase**: Production Ready - Fully Operational
 **Build Status**: Passing
 **Test Coverage**: 100% (all implemented features tested)
@@ -189,6 +189,11 @@ techlabs-automation/
   - Completed: July 9, 2025
   - Notes: QUICK FIX COMPLETE: Fixed jarring bright yellow/cream alert box in Terraform settings tab. Alert container now uses dark:bg-stone-800 with dark:border-stone-600, warning icon uses dark:text-amber-400, heading uses dark:text-amber-200, and message text uses dark:text-stone-200. Maintains warning semantic meaning while fitting seamlessly into dark theme. All 5 Terraform alert dark mode tests passing. No more "flashlight in the face" effect.
 
+- [x] **Task ID: BULK-IMPORT-001**
+  - Description: Implement CSV bulk import functionality for workshop creation
+  - Completed: July 21, 2025
+  - Notes: FEATURE COMPLETE: Added comprehensive CSV bulk import system to workshop creation page. Features include: CSV parsing and validation utility with proper error handling, real-time CSV validation with user feedback, toggle switch for individual vs bulk import modes, progress tracking during bulk attendee creation, CSV format validation (username,email per line), duplicate detection for usernames and emails, comprehensive test coverage with 30 tests (17 utility + 13 integration tests). Supports clean commit workflow without prohibited Co-authored-by messages. Workshop creation now supports both individual attendee entry and CSV bulk import.
+
 ## Important Context
 
 ### Known Issues
@@ -267,12 +272,20 @@ techlabs-automation/
 - **Settings page dark mode pattern**: Use consistent dark mode styling across form-heavy pages: main containers (dark:bg-slate-800), form inputs (dark:bg-slate-700, dark:border-slate-600, dark:text-gray-100), tab navigation (dark:border-slate-600), and footer sections (dark:bg-slate-700). This eliminates light mode islands and provides seamless dark theme integration.
 - **Alert boxes in dark mode**: Warning/information alert boxes should use subtle dark backgrounds (dark:bg-stone-800) instead of bright colors. Warning icons use dark:text-amber-400, headings use dark:text-amber-200, and message text uses dark:text-stone-200. This maintains semantic meaning while preventing jarring bright flashes in dark mode.
 - **CRITICAL - Co-Authored-By violations**: Never add Co-authored-by messages in commit messages. Three commits violated this rule and were cleaned up using git filter-branch. Always check commit messages before pushing to ensure compliance with guidelines.
+- **CSV file parsing patterns**: Use split() and trim() operations for simple CSV parsing with proper error handling. Always validate format and content separately. For complex CSV files, consider using dedicated CSV parsing libraries.
+- **Real-time form validation**: Implement validation state updates on each input change event, clearing errors immediately when data becomes valid. This provides better user experience than validation only on submit.
+- **React toggle switches**: For accessible toggle switches without predefined components, use CSS classes to select elements in tests instead of role-based selection. Custom toggle switches may not have standard ARIA roles.
+- **Bulk operation progress tracking**: Show progress indicators during async bulk operations with real-time completion counts. Handle partial failures gracefully by collecting and displaying errors while allowing successful operations to complete.
+- **Test async operations**: Use controlled promises (Promise + resolve function) to test components during async operations. This allows testing intermediate states like loading indicators and progress displays.
+- **CSV validation error formatting**: Structure CSV validation errors with line numbers and context (field names, values, original lines) for clear user feedback. Separate parsing errors from validation errors to provide specific guidance.
+- **Form mode switching**: When switching between different form modes (individual vs bulk), clear all mode-specific state to prevent confusion. Reset form data, errors, and validation state when changing modes.
+- **Test data factories**: Create factory functions with optional overrides for consistent test data generation. Use Partial<T> types for override parameters to maintain type safety while allowing flexible test setup.
 
 ## Next Session Starting Point
 
-**Priority**: UI & Corporate Identity improvements completed  
-**Current State**: Production deployment fully verified, timezone-aware dates implemented, template system completed, OVH corporate branding implemented with standalone logo design, dark mode functionality with animated theme switch, application title restored in main header, comprehensive dark mode implementation across all pages
-**Next Action**: System ready for production use with complete dark mode implementation
+**Priority**: CSV bulk import functionality completed  
+**Current State**: Production deployment fully verified, timezone-aware dates implemented, template system completed, OVH corporate branding implemented with standalone logo design, dark mode functionality with animated theme switch, application title restored in main header, comprehensive dark mode implementation across all pages, CSV bulk import functionality added to workshop creation
+**Next Action**: System ready for production use with complete feature set including bulk attendee import
 
 ## Commands Reference
 
