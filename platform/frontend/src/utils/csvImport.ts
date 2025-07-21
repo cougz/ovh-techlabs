@@ -118,6 +118,34 @@ export const validateAttendeeData = (attendees: CsvAttendeeData[]): CsvValidatio
       });
     }
     
+    // Validate username format - prioritize specific error messages
+    if (attendee.username.includes('.')) {
+      errors.push({
+        lineNumber: attendee.lineNumber,
+        message: 'Username cannot contain dots (.) - use dashes (-) instead',
+        field: 'username',
+        value: attendee.username
+      });
+    } else if (attendee.username.includes(' ')) {
+      errors.push({
+        lineNumber: attendee.lineNumber,
+        message: 'Username cannot contain spaces - use dashes (-) instead',
+        field: 'username',
+        value: attendee.username
+      });
+    } else {
+      // Validate username format - only allowed characters (alphanumeric, -, _, +)
+      const usernameRegex = /^[a-zA-Z0-9\-_+]+$/;
+      if (!usernameRegex.test(attendee.username)) {
+        errors.push({
+          lineNumber: attendee.lineNumber,
+          message: 'Username can only contain letters, numbers, hyphens (-), underscores (_), and plus (+) symbols',
+          field: 'username',
+          value: attendee.username
+        });
+      }
+    }
+    
     // Validate email format
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     if (!emailRegex.test(attendee.email)) {
