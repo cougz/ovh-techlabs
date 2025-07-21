@@ -10,6 +10,8 @@ CREATE TABLE workshops (
     description TEXT,
     start_date TIMESTAMP WITH TIME ZONE NOT NULL,
     end_date TIMESTAMP WITH TIME ZONE NOT NULL,
+    timezone VARCHAR(50) DEFAULT 'UTC' NOT NULL,
+    template VARCHAR(50) DEFAULT 'Generic' NOT NULL,
     status VARCHAR(50) DEFAULT 'planning' CHECK (status IN ('planning', 'deploying', 'active', 'completed', 'failed', 'deleting')),
     created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
@@ -155,6 +157,8 @@ SELECT
     w.description,
     w.start_date,
     w.end_date,
+    w.timezone,
+    w.template,
     w.status,
     w.created_at,
     COUNT(a.id) as attendee_count,
@@ -162,7 +166,7 @@ SELECT
     COUNT(CASE WHEN a.status = 'failed' THEN 1 END) as failed_attendees
 FROM workshops w
 LEFT JOIN attendees a ON w.id = a.workshop_id
-GROUP BY w.id, w.name, w.description, w.start_date, w.end_date, w.status, w.created_at;
+GROUP BY w.id, w.name, w.description, w.start_date, w.end_date, w.timezone, w.template, w.status, w.created_at;
 
 CREATE VIEW attendee_details AS
 SELECT 
