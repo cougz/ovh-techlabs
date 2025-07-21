@@ -1,6 +1,4 @@
-Here's a reduced version of CLAUDE.md that maintains the essential guidelines while being more manageable:
-
-```markdown
+````markdown
 # CLAUDE.md - Development Guidelines for Claude Code
 
 ## Critical Workflow Instructions
@@ -17,17 +15,19 @@ Here's a reduced version of CLAUDE.md that maintains the essential guidelines wh
 2. Green: Write minimal code to pass
 3. Refactor: Improve if valuable
 4. Commit: git add . && git commit -m "type: message" && git push
-```
+````
 
 ## Core Principles
 
 ### Test-Driven Development (Non-Negotiable)
+
 - NO production code without failing test first
 - Test behavior through public APIs only
 - 100% coverage through business behavior tests
 - No testing implementation details
 
 ### TypeScript Standards
+
 ```json
 // tsconfig.json - strict mode required
 {
@@ -38,11 +38,13 @@ Here's a reduced version of CLAUDE.md that maintains the essential guidelines wh
   }
 }
 ```
+
 - Never use `any` - use `unknown` if needed
 - Prefer `type` over `interface`
 - Use real schemas/types in tests - never redefine
 
 ### Code Style
+
 - Functional approach: immutable data, pure functions
 - Small functions with single responsibility
 - Options objects for function parameters
@@ -50,6 +52,7 @@ Here's a reduced version of CLAUDE.md that maintains the essential guidelines wh
 - Early returns over nested conditionals
 
 ### Testing Best Practices
+
 ```typescript
 // ✅ Good - Test behavior
 it("should decline payment when insufficient funds", () => {
@@ -65,6 +68,7 @@ it("should call checkBalance method", () => {
 ```
 
 ### Refactoring Guidelines
+
 - Always assess after green
 - Only refactor if it adds value
 - Maintain external APIs
@@ -83,6 +87,7 @@ const validateProductRating = (rating: number): boolean => {
 ```
 
 ## Commit Standards
+
 ```bash
 feat: add payment validation
 fix: correct date formatting
@@ -92,14 +97,15 @@ docs: update PROJECT.md
 ```
 
 ## Key Reminders
+
 1. TDD is mandatory - no exceptions
 2. Test behavior, not implementation
 3. Refactor only when it improves code
 4. Keep functions small and pure
-5. Update PROJECT.md with learnings
+5. Update [PROJECT.md](http://PROJECT.md) with learnings
 6. Commit after every small change
 7. No Commit CoAuthor messages
 
 ## Summary
+
 Write clean, testable, functional code through small increments. Every line of production code must be driven by a failing test. When in doubt, favor simplicity over cleverness.
-```
