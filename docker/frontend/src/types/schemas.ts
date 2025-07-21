@@ -75,7 +75,7 @@ export const DeploymentLogSchema = z.object({
   status: DeploymentStatusSchema,
   terraform_output: z.string().optional(),
   error_message: z.string().optional(),
-  created_at: DateTimeSchema,
+  started_at: DateTimeSchema,
   completed_at: DateTimeSchema.optional(),
 });
 

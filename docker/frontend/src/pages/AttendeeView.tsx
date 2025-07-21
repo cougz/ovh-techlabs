@@ -406,7 +406,7 @@ const AttendeeView: React.FC = () => {
                         </span>
                       </div>
                       <span className="text-xs text-gray-500">
-                        {new Date(log.created_at).toLocaleString()}
+                        {new Date(log.started_at).toLocaleString()}
                       </span>
                     </div>
                     

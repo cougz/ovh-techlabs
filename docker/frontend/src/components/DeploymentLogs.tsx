@@ -14,7 +14,7 @@ interface LogEntry {
   status: string;
   terraform_output?: string;
   error_message?: string;
-  created_at: string;
+  started_at: string;
   completed_at?: string;
 }
 
@@ -137,7 +137,7 @@ const DeploymentLogs: React.FC<DeploymentLogsProps> = ({
                     </span>
                   </div>
                   <span className="text-xs">
-                    {formatTimestamp(log.created_at)}
+                    {formatTimestamp(log.started_at)}
                   </span>
                 </div>
 

@@ -8,7 +8,7 @@ interface LogEntry {
   status: string;
   terraform_output?: string;
   error_message?: string;
-  created_at: string;
+  started_at: string;
   completed_at?: string;
 }
 
@@ -19,14 +19,14 @@ describe('DeploymentLogs Component', () => {
       action: 'create_project',
       status: 'completed',
       terraform_output: 'Project created successfully\nProject ID: test-project-123',
-      created_at: '2024-07-01T10:00:00Z',
+      started_at: '2024-07-01T10:00:00Z',
     },
     {
       id: 'log-2',
       action: 'deploy_resources',
       status: 'running',
       terraform_output: 'Deploying compute instances...',
-      created_at: '2024-07-01T10:05:00Z',
+      started_at: '2024-07-01T10:05:00Z',
     },
     {
       id: 'log-3',
@@ -34,7 +34,7 @@ describe('DeploymentLogs Component', () => {
       status: 'failed',
       terraform_output: 'Network deployment failed',
       error_message: 'Insufficient quota for public IP allocation',
-      created_at: '2024-07-01T10:08:00Z',
+      started_at: '2024-07-01T10:08:00Z',
     },
   ];
 
@@ -92,7 +92,8 @@ describe('DeploymentLogs Component', () => {
       const firstShowDetails = screen.getAllByText('Show Details')[0];
       fireEvent.click(firstShowDetails);
       
-      expect(screen.getByText('Project created successfully')).toBeInTheDocument();
+      // Check for part of the terraform output that should be visible
+      expect(screen.getByText(/Project created successfully/)).toBeInTheDocument();
     });
 
     it('should show Hide Details button when expanded', () => {
@@ -160,7 +161,7 @@ describe('DeploymentLogs Component', () => {
       fireEvent.click(showDetailsButtons[0]);
       
       // Now terraform output should be visible
-      expect(screen.getByText('Project created successfully')).toBeInTheDocument();
+      expect(screen.getByText(/Project created successfully/)).toBeInTheDocument();
     });
   });
 
@@ -180,8 +181,9 @@ describe('DeploymentLogs Component', () => {
       
       fireEvent.click(screen.getByText('Deployment Logs (3)'));
       
-      // Should show some date format
-      expect(screen.getByText(/2024/)).toBeInTheDocument();
+      // Should show some date format - use getAllByText since there are multiple timestamps
+      const timestamps = screen.getAllByText(/2024/);
+      expect(timestamps.length).toBeGreaterThan(0);
     });
   });
 });
