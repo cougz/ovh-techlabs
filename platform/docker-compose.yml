@@ -47,7 +47,7 @@ services:
       - CELERY_RESULT_BACKEND=redis://redis:6379/0
       - SECRET_KEY=${SECRET_KEY}
       - DEBUG=false
-      - CORS_ORIGINS=["http://localhost:3000","http://localhost","http://172.17.102.204"]
+      - CORS_ORIGINS=http://localhost:3000,http://localhost,http://172.17.102.204
       - OVH_ENDPOINT=${OVH_ENDPOINT}
       - OVH_APPLICATION_KEY=${OVH_APPLICATION_KEY}
       - OVH_APPLICATION_SECRET=${OVH_APPLICATION_SECRET}
