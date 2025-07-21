@@ -8,6 +8,7 @@ from core.database import SessionLocal
 from core.logging import get_logger
 from models.workshop import Workshop
 from models.attendee import Attendee
+from services.workshop_status_service import WorkshopStatusService
 from tasks.terraform_tasks import destroy_attendee_resources
 
 logger = get_logger(__name__)
@@ -111,28 +112,16 @@ def update_workshop_statuses():
             
             attendee_statuses = [attendee.status for attendee in attendees]
             
-            # Check if all attendees are done (either active or failed)
-            active_count = attendee_statuses.count('active')
-            failed_count = attendee_statuses.count('failed')
+            # Check if any attendees are still deploying
             deploying_count = attendee_statuses.count('deploying')
             
-            # If no attendees are still deploying
+            # If no attendees are still deploying, update status using least sane logic
             if deploying_count == 0:
-                if failed_count == len(attendees):
-                    # All attendees failed
-                    workshop.status = "failed"
-                elif failed_count > 0:
-                    # Some attendees failed
-                    workshop.status = "failed"
-                elif active_count == len(attendees):
-                    # All attendees succeeded
-                    workshop.status = "active"
-                else:
-                    # Mixed states, mark as failed for safety
-                    workshop.status = "failed"
+                old_status = workshop.status
+                new_status = WorkshopStatusService.update_workshop_status_from_attendees(str(workshop.id), db)
                 
-                db.commit()
-                logger.info(f"Updated workshop {workshop.id} status to {workshop.status}")
+                if new_status and old_status != new_status:
+                    logger.info(f"Updated workshop {workshop.id} status from {old_status} to {new_status} using least sane status logic")
         
         # Also check for workshops that might be stuck in deploying
         stuck_threshold = datetime.now(ZoneInfo("UTC")) - timedelta(minutes=30)

@@ -10,6 +10,7 @@ from models.attendee import Attendee
 from models.deployment_log import DeploymentLog
 from models.workshop import Workshop
 from services.terraform_service import terraform_service
+from services.workshop_status_service import WorkshopStatusService
 from tasks.websocket_updates import (
     broadcast_status_update, 
     broadcast_deployment_log,
@@ -19,56 +20,28 @@ from tasks.websocket_updates import (
 logger = get_logger(__name__)
 
 def update_workshop_status_based_on_attendees(db: Session, workshop_id: UUID):
-    """Update workshop status based on attendee statuses."""
+    """Update workshop status based on attendee statuses using least sane status logic."""
     try:
         workshop = db.query(Workshop).filter(Workshop.id == workshop_id).first()
         if not workshop:
             return
         
-        attendees = db.query(Attendee).filter(Attendee.workshop_id == workshop_id).all()
-        if not attendees:
-            return
+        # Get current workshop status for comparison
+        old_status = workshop.status
         
-        attendee_statuses = [a.status for a in attendees]
+        # Use the new service to calculate and update status
+        new_status = WorkshopStatusService.update_workshop_status_from_attendees(str(workshop_id), db)
         
-        # If any attendee failed, mark workshop as failed
-        if 'failed' in attendee_statuses:
-            if workshop.status != 'failed':
-                workshop.status = 'failed'
-                db.commit()
-                broadcast_status_update(
-                    str(workshop_id),
-                    "workshop",
-                    str(workshop_id),
-                    "failed",
-                    {"reason": "One or more attendees failed deployment"}
-                )
-                logger.info(f"Workshop {workshop_id} marked as failed due to attendee failures")
-        
-        # If all attendees are active, mark workshop as active
-        elif all(status == 'active' for status in attendee_statuses):
-            if workshop.status != 'active':
-                workshop.status = 'active'
-                db.commit()
-                broadcast_status_update(
-                    str(workshop_id),
-                    "workshop", 
-                    str(workshop_id),
-                    "active"
-                )
-                logger.info(f"Workshop {workshop_id} marked as active - all attendees deployed")
-        
-        # If any attendees are still deploying, keep workshop as deploying
-        elif 'deploying' in attendee_statuses:
-            if workshop.status != 'deploying':
-                workshop.status = 'deploying'
-                db.commit()
-                broadcast_status_update(
-                    str(workshop_id),
-                    "workshop",
-                    str(workshop_id), 
-                    "deploying"
-                )
+        if new_status and old_status != new_status:
+            # Broadcast status update via WebSocket
+            broadcast_status_update(
+                str(workshop_id),
+                "workshop",
+                str(workshop_id),
+                new_status,
+                {"reason": f"Workshop status updated based on attendee statuses (least sane status logic)"}
+            )
+            logger.info(f"Workshop {workshop_id} status updated from '{old_status}' to '{new_status}' using least sane status logic")
         
     except Exception as e:
         logger.error(f"Error updating workshop status: {str(e)}")
@@ -468,25 +441,23 @@ def deploy_workshop_attendees_sequential(self, workshop_id: str):
                 attendee.status = 'failed'
                 db.commit()
         
-        # Update workshop status based on results
+        # Update workshop status using the new service logic (least sane status)
+        new_status = WorkshopStatusService.update_workshop_status_from_attendees(workshop_id, db)
+        
+        # Create appropriate status message
         if failed_count == 0:
-            workshop.status = 'active'
             status_message = f"All {deployed_count} attendees deployed successfully"
         elif deployed_count > 0:
-            workshop.status = 'active'  # Partial success is still active
             status_message = f"{deployed_count} attendees deployed, {failed_count} failed"
         else:
-            workshop.status = 'failed'
             status_message = f"All {failed_count} attendees failed deployment"
-        
-        db.commit()
         
         # Broadcast final status
         broadcast_status_update(
             str(workshop_id),
             "workshop", 
             str(workshop_id),
-            workshop.status,
+            new_status,
             {"message": status_message}
         )
         
@@ -496,7 +467,7 @@ def deploy_workshop_attendees_sequential(self, workshop_id: str):
             "message": status_message,
             "attendees_deployed": deployed_count,
             "attendees_failed": failed_count,
-            "workshop_status": workshop.status
+            "workshop_status": new_status
         }
         
     except Exception as e:
