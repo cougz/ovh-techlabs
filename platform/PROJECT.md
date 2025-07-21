@@ -194,6 +194,11 @@ techlabs-automation/
   - Completed: July 21, 2025
   - Notes: FEATURE COMPLETE: Added comprehensive CSV bulk import system to workshop creation page. Features include: CSV parsing and validation utility with proper error handling, real-time CSV validation with user feedback, toggle switch for individual vs bulk import modes, progress tracking during bulk attendee creation, CSV format validation (username,email per line), duplicate detection for usernames and emails, comprehensive test coverage with 30 tests (17 utility + 13 integration tests). Supports clean commit workflow without prohibited Co-authored-by messages. Workshop creation now supports both individual attendee entry and CSV bulk import.
 
+- [x] **Task ID: DARK-MODE-UI-FIX-001**
+  - Description: Fix Dark Mode UI Inconsistencies on Dashboard - Remove double borders/containers and nested dark layers
+  - Completed: July 21, 2025
+  - Notes: UI FIX COMPLETE: Fixed dark mode visual inconsistencies that created "nested/windowed" appearance on Dashboard page. Removed excessive dark mode styling including redundant container backgrounds, double borders, and nested dark layers. Dashboard now uses clean, flat design matching light mode structure. Changes: removed dark styling from main wrapper, eliminated redundant dark classes on stat cards, simplified Recent Workshops section to single-level containers, cleaned empty state styling, let base CSS handle theming. All 8 UI fix tests passing. Dark mode now has professional appearance with visual parity to light theme.
+
 ## Important Context
 
 ### Known Issues
@@ -280,12 +285,13 @@ techlabs-automation/
 - **CSV validation error formatting**: Structure CSV validation errors with line numbers and context (field names, values, original lines) for clear user feedback. Separate parsing errors from validation errors to provide specific guidance.
 - **Form mode switching**: When switching between different form modes (individual vs bulk), clear all mode-specific state to prevent confusion. Reset form data, errors, and validation state when changing modes.
 - **Test data factories**: Create factory functions with optional overrides for consistent test data generation. Use Partial<T> types for override parameters to maintain type safety while allowing flexible test setup.
+- **Dark mode inline class conflicts**: Adding inline dark mode classes (dark:bg-slate-800, dark:border-2, etc.) to components that already have CSS-based dark mode styling creates visual conflicts and nested container effects. Always prefer CSS-based theming (.dark .card) over inline Tailwind dark classes. Inline dark classes should only be used for text colors and specific styling that can't be handled by base CSS selectors. This prevents "double border" and "nested container" visual problems in dark mode.
 
 ## Next Session Starting Point
 
-**Priority**: CSV bulk import functionality completed  
-**Current State**: Production deployment fully verified, timezone-aware dates implemented, template system completed, OVH corporate branding implemented with standalone logo design, dark mode functionality with animated theme switch, application title restored in main header, comprehensive dark mode implementation across all pages, CSV bulk import functionality added to workshop creation
-**Next Action**: System ready for production use with complete feature set including bulk attendee import
+**Priority**: Dark mode UI fix completed  
+**Current State**: Production deployment fully verified, timezone-aware dates implemented, template system completed, OVH corporate branding implemented with standalone logo design, dark mode functionality with animated theme switch, application title restored in main header, comprehensive dark mode implementation across all pages, CSV bulk import functionality added to workshop creation, Dashboard dark mode UI inconsistencies fixed
+**Next Action**: System ready for production use with complete feature set including bulk attendee import and clean dark mode UI
 
 ## Commands Reference
 
