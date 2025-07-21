@@ -29,11 +29,6 @@ interface FormErrors {
   csv?: string;
 }
 
-interface AttendeeData {
-  username: string;
-  email: string;
-}
-
 interface BulkImportProgress {
   isImporting: boolean;
   completed: number;
@@ -57,7 +52,6 @@ const CreateWorkshop: React.FC = () => {
   const [csvData, setCsvData] = useState('');
   const [parsedAttendees, setParsedAttendees] = useState<CsvAttendeeData[]>([]);
   const [csvErrors, setCsvErrors] = useState<(CsvParseError | CsvValidationError)[]>([]);
-  const [individualAttendee, setIndividualAttendee] = useState<AttendeeData>({ username: '', email: '' });
   const [bulkImportProgress, setBulkImportProgress] = useState<BulkImportProgress>({
     isImporting: false,
     completed: 0,
@@ -461,10 +455,7 @@ const CreateWorkshop: React.FC = () => {
                         setParsedAttendees([]);
                         setCsvErrors([]);
                       }
-                      // Clear individual attendee data when switching to bulk
-                      if (!isBulkImport) {
-                        setIndividualAttendee({ username: '', email: '' });
-                      }
+                      // Individual mode doesn't have persistent state to clear
                     }}
                     className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2 ${
                       isBulkImport ? 'bg-primary-600' : 'bg-gray-200'
