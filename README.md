@@ -25,14 +25,15 @@ OVHcloud TechLabs is our flagship technical workshop event designed to provide h
 
 ```
 ovh-techlabs/
-├── platform/           # Workshop automation platform
-│   ├── api/           # FastAPI backend
-│   ├── frontend/      # React dashboard
-│   ├── database/      # PostgreSQL schemas
-│   └── docker/        # Deployment configs
-└── workbooks/         # Workshop tutorials
-    ├── docs/          # MkDocs content
-    └── public-cloud/  # Tutorial source code
+├── docker/            # Workshop automation platform
+│   ├── api/          # FastAPI backend
+│   ├── frontend/     # React dashboard
+│   ├── database/     # PostgreSQL schemas
+│   ├── .env.example  # Environment configuration template
+│   └── docker-compose.yml
+└── workbooks/        # Workshop tutorials
+    ├── docs/         # MkDocs content
+    └── public-cloud/ # Tutorial source code
 ```
 
 ## 🚀 Quick Start
@@ -42,11 +43,36 @@ ovh-techlabs/
 The automation platform manages workshop deployments:
 
 ```bash
-cd platform
+cd docker
+
+# 1. Configure environment variables
+cp .env.example .env
+# Edit .env with your OVHcloud credentials and configuration
+
+# 2. Start the platform
 docker-compose up -d
 ```
 
 Access the dashboard at `http://localhost:3000`
+
+#### Environment Configuration
+
+The platform requires proper environment configuration before deployment. Key settings include:
+
+- **OVHcloud API credentials** (get from [api.ovh.com/createToken](https://api.ovh.com/createToken/))
+- **Database and Redis connection settings**
+- **Security keys and JWT configuration**
+- **Terraform and deployment settings**
+
+Copy `.env.example` to `.env` and update the values for your environment:
+
+```bash
+cd docker
+cp .env.example .env
+# Edit .env file with your actual credentials
+```
+
+**Important**: Never commit your actual `.env` file to version control. It contains sensitive credentials.
 
 ### Viewing Workbooks
 
@@ -72,7 +98,7 @@ The platform automates the entire workshop lifecycle:
 - **Automated Cleanup**: Scheduled resource cleanup after workshop completion
 - **Real-time Monitoring**: WebSocket-based deployment status updates
 
-[Learn more →](platform/README.md)
+[Learn more →](docker/README.md)
 
 ### Workbooks (Tutorial Content)
 
@@ -93,9 +119,9 @@ Step-by-step guides for workshop attendees:
 
 ## 📖 Documentation
 
-- [Platform Documentation](platform/README.md) - Detailed platform setup and usage
+- [Platform Documentation](docker/README.md) - Detailed platform setup and usage
 - [Workbooks Documentation](workbooks/README.md) - Tutorial authoring guide
-- [API Reference](platform/api/README.md) - REST API documentation
+- [API Reference](docker/api/README.md) - REST API documentation
 
 ## 🤝 Contributing
 

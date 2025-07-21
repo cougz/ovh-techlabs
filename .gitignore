@@ -5,11 +5,11 @@ yarn-debug.log*
 yarn-error.log*
 
 # Production builds
-/platform/frontend/build/
-/platform/frontend/dist/
+/docker/frontend/build/
+/docker/frontend/dist/
 
 # Test coverage
-/platform/frontend/coverage/
+/docker/frontend/coverage/
 
 # Environment variables
 .env
