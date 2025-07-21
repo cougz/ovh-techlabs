@@ -504,7 +504,7 @@ const WorkshopDetail: React.FC = () => {
                         value={newAttendee.username}
                         onChange={(e) => setNewAttendee(prev => ({ ...prev, username: e.target.value }))}
                         className="block w-full rounded-md border-gray-300 shadow-sm focus:border-primary-500 focus:ring-primary-500 sm:text-sm"
-                        placeholder="e.g., john.doe"
+                        placeholder="e.g., john-doe"
                         required
                       />
                     </div>
@@ -517,7 +517,7 @@ const WorkshopDetail: React.FC = () => {
                         value={newAttendee.email}
                         onChange={(e) => setNewAttendee(prev => ({ ...prev, email: e.target.value }))}
                         className="block w-full rounded-md border-gray-300 shadow-sm focus:border-primary-500 focus:ring-primary-500 sm:text-sm"
-                        placeholder="john.doe@example.com"
+                        placeholder="john-doe@example.com"
                         required
                       />
                     </div>

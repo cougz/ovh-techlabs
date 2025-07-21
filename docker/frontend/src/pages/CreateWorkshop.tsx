@@ -485,7 +485,7 @@ const CreateWorkshop: React.FC = () => {
                       className={`block w-full rounded-md border-gray-300 shadow-sm focus:border-primary-500 focus:ring-primary-500 sm:text-sm font-mono ${
                         errors.csv || csvErrors.length > 0 ? 'border-danger-300 focus:border-danger-500 focus:ring-danger-500' : ''
                       }`}
-                      placeholder="Max.Mustermann,Max.Mustermann@techlab.ovh&#10;John.Doe,john.doe@example.com&#10;Jane.Smith,jane.smith@example.com"
+                      placeholder="Max-Mustermann,max-mustermann@techlab.ovh&#10;John-Doe,john-doe@example.com&#10;Jane-Smith,jane-smith@example.com"
                     />
                     {errors.csv && (
                       <p className="mt-2 text-sm text-danger-600">{errors.csv}</p>

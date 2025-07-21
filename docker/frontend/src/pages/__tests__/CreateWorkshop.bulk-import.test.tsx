@@ -46,7 +46,7 @@ describe('CreateWorkshop - Bulk Import', () => {
     });
     mockedAttendeeApi.createAttendee.mockResolvedValue({
       id: 'attendee-123',
-      username: 'john.doe',
+      username: 'john-doe',
       email: 'john@example.com',
       workshop_id: 'workshop-123',
     });
@@ -73,7 +73,7 @@ describe('CreateWorkshop - Bulk Import', () => {
     
     const csvTextarea = screen.getByLabelText('CSV Data');
     expect(csvTextarea).toBeInTheDocument();
-    expect(csvTextarea).toHaveAttribute('placeholder', expect.stringContaining('Max.Mustermann,Max.Mustermann@techlab.ovh'));
+    expect(csvTextarea).toHaveAttribute('placeholder', expect.stringContaining('Max-Mustermann,max-mustermann@techlab.ovh'));
   });
 
   it('should show individual attendee message by default', () => {
@@ -92,7 +92,7 @@ describe('CreateWorkshop - Bulk Import', () => {
     
     const csvTextarea = screen.getByLabelText('CSV Data');
     fireEvent.change(csvTextarea, {
-      target: { value: 'john.doe,john@example.com\njane.smith,jane@example.com' }
+      target: { value: 'john-doe,john@example.com\njane-smith,jane@example.com' }
     });
     
     expect(screen.getByText('Ready to Import')).toBeInTheDocument();
@@ -108,7 +108,7 @@ describe('CreateWorkshop - Bulk Import', () => {
     
     const csvTextarea = screen.getByLabelText('CSV Data');
     fireEvent.change(csvTextarea, {
-      target: { value: 'john.doe\ninvalid-line' }
+      target: { value: 'john-doe\ninvalid-line' }
     });
     
     expect(screen.getByText('CSV Validation Errors')).toBeInTheDocument();
@@ -124,7 +124,7 @@ describe('CreateWorkshop - Bulk Import', () => {
     
     const csvTextarea = screen.getByLabelText('CSV Data');
     fireEvent.change(csvTextarea, {
-      target: { value: 'john.doe,not-an-email' }
+      target: { value: 'john-doe,not-an-email' }
     });
     
     expect(screen.getByText('CSV Validation Errors')).toBeInTheDocument();
@@ -139,7 +139,7 @@ describe('CreateWorkshop - Bulk Import', () => {
     
     const csvTextarea = screen.getByLabelText('CSV Data');
     fireEvent.change(csvTextarea, {
-      target: { value: 'john.doe,john1@example.com\njohn.doe,john2@example.com' }
+      target: { value: 'john-doe,john1@example.com\njohn-doe,john2@example.com' }
     });
     
     expect(screen.getByText('CSV Validation Errors')).toBeInTheDocument();
@@ -161,7 +161,7 @@ describe('CreateWorkshop - Bulk Import', () => {
     // Add CSV data
     const csvTextarea = screen.getByLabelText('CSV Data');
     fireEvent.change(csvTextarea, {
-      target: { value: 'john.doe,john@example.com\njane.smith,jane@example.com' }
+      target: { value: 'john-doe,john@example.com\njane-smith,jane@example.com' }
     });
     
     // Submit form
@@ -181,12 +181,12 @@ describe('CreateWorkshop - Bulk Import', () => {
     });
     
     expect(mockedAttendeeApi.createAttendee).toHaveBeenCalledWith('workshop-123', {
-      username: 'john.doe',
+      username: 'john-doe',
       email: 'john@example.com'
     });
     
     expect(mockedAttendeeApi.createAttendee).toHaveBeenCalledWith('workshop-123', {
-      username: 'jane.smith',
+      username: 'jane-smith',
       email: 'jane@example.com'
     });
   });
@@ -210,7 +210,7 @@ describe('CreateWorkshop - Bulk Import', () => {
     
     const csvTextarea = screen.getByLabelText('CSV Data');
     fireEvent.change(csvTextarea, {
-      target: { value: 'john.doe,john@example.com' }
+      target: { value: 'john-doe,john@example.com' }
     });
     
     const submitButton = screen.getByRole('button', { name: 'Create Workshop' });
@@ -223,7 +223,7 @@ describe('CreateWorkshop - Bulk Import', () => {
     // Resolve the promise to complete the test
     resolveAttendeeCreation!({
       id: 'attendee-123',
-      username: 'john.doe',
+      username: 'john-doe',
       email: 'john@example.com',
       workshop_id: 'workshop-123'
     });
@@ -245,7 +245,7 @@ describe('CreateWorkshop - Bulk Import', () => {
     
     const csvTextarea = screen.getByLabelText('CSV Data');
     fireEvent.change(csvTextarea, {
-      target: { value: 'john.doe,john@example.com' }
+      target: { value: 'john-doe,john@example.com' }
     });
     
     const submitButton = screen.getByRole('button', { name: 'Create Workshop' });
@@ -255,7 +255,7 @@ describe('CreateWorkshop - Bulk Import', () => {
       expect(screen.getByText('Failed to create 1 attendee(s)')).toBeInTheDocument();
     });
     
-    expect(screen.getByText(/john.doe \(john@example.com\): Username already exists/)).toBeInTheDocument();
+    expect(screen.getByText(/john-doe \(john@example.com\): Username already exists/)).toBeInTheDocument();
   });
 
   it('should validate CSV data is required when bulk import is enabled', () => {
@@ -300,10 +300,10 @@ describe('CreateWorkshop - Bulk Import', () => {
     
     const csvTextarea = screen.getByLabelText('CSV Data');
     fireEvent.change(csvTextarea, {
-      target: { value: 'john.doe,john@example.com' }
+      target: { value: 'john-doe,john@example.com' }
     });
     
-    expect(csvTextarea).toHaveValue('john.doe,john@example.com');
+    expect(csvTextarea).toHaveValue('john-doe,john@example.com');
     
     // Switch back to individual
     fireEvent.click(toggle);
