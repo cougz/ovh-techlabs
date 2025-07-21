@@ -13,7 +13,8 @@ import {
   ClockIcon,
   EllipsisVerticalIcon,
   ArrowLeftIcon,
-  PencilIcon
+  PencilIcon,
+  DocumentArrowDownIcon
 } from '@heroicons/react/24/outline';
 
 import { workshopApi, attendeeApi, deploymentApi } from '../services/api';
@@ -75,6 +76,7 @@ const WorkshopDetail: React.FC = () => {
   const [showActions, setShowActions] = useState<string | null>(null);
   const [newAttendee, setNewAttendee] = useState({ username: '', email: '' });
   const [deploymentProgress] = useState<Record<string, { progress: number; step: string }>>({});
+  const [isExporting, setIsExporting] = useState(false);
   const attendeeTriggerRefs = useRef<Record<string, HTMLButtonElement | null>>({});
 
   // Temporary: Disable WebSocket to test if it's the issue
@@ -263,6 +265,75 @@ const WorkshopDetail: React.FC = () => {
     }
     if (window.confirm('This will permanently delete the workshop. Are you sure?')) {
       deleteWorkshopMutation.mutate();
+    }
+  };
+
+  const handleExportAttendees = async () => {
+    if (!workshop) {
+      alert('Workshop data not available');
+      return;
+    }
+    
+    setIsExporting(true);
+    
+    try {
+      // Filter for only deployed attendees (active status)
+      const activeAttendees = attendees.filter(a => a.status === 'active');
+      
+      if (activeAttendees.length === 0) {
+        // Create export file with no deployed environments message
+        const content = `${workshop.name} - Attendee List\n\nNo deployed attendee environments found.`;
+        const blob = new Blob([content], { type: 'text/plain' });
+        const url = URL.createObjectURL(blob);
+        
+        const link = document.createElement('a');
+        link.href = url;
+        link.download = `${workshop.name} - Attendee List - ${new Date().toISOString().split('T')[0]}.txt`;
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        URL.revokeObjectURL(url);
+        return;
+      }
+      
+      // Fetch credentials for all active attendees
+      const credentialsPromises = activeAttendees.map(attendee =>
+        attendeeApi.getAttendeeCredentials(attendee.id)
+      );
+      
+      const credentials = await Promise.all(credentialsPromises);
+      
+      // Format the export data
+      let content = `${workshop.name} - Attendee List\n\n`;
+      
+      credentials.forEach((cred, index) => {
+        const attendee = activeAttendees[index];
+        content += `Username: ${cred.username}\n`;
+        content += `Email: ${attendee.email}\n`;
+        content += `Password: ${cred.password}\n`;
+        if (cred.ovh_project_id) {
+          content += `Project ID: ${cred.ovh_project_id}\n`;
+        }
+        content += `\n`;
+      });
+      
+      // Create and trigger download
+      const blob = new Blob([content], { type: 'text/plain' });
+      const url = URL.createObjectURL(blob);
+      
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = `${workshop.name} - Attendee List - ${new Date().toISOString().split('T')[0]}.txt`;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      URL.revokeObjectURL(url);
+      
+    } catch (error) {
+      console.error('Failed to export attendee list:', error);
+      alert('Failed to export attendee list: ' + (error instanceof Error ? error.message : 'Unknown error'));
+    } finally {
+      setIsExporting(false);
     }
   };
 
@@ -479,13 +550,23 @@ const WorkshopDetail: React.FC = () => {
               <h3 className="text-lg leading-6 font-medium text-gray-900">
                 Attendees ({attendees.length})
               </h3>
-              <button
-                onClick={() => setShowAddAttendee(true)}
-                className="btn-primary"
-              >
-                <PlusIcon className="h-4 w-4 mr-2" />
-                Add Attendee
-              </button>
+              <div className="flex space-x-3">
+                <button
+                  onClick={handleExportAttendees}
+                  disabled={isExporting}
+                  className="btn-secondary"
+                >
+                  <DocumentArrowDownIcon className="h-4 w-4 mr-2" />
+                  {isExporting ? 'Exporting...' : 'Export Attendee List'}
+                </button>
+                <button
+                  onClick={() => setShowAddAttendee(true)}
+                  className="btn-primary"
+                >
+                  <PlusIcon className="h-4 w-4 mr-2" />
+                  Add Attendee
+                </button>
+              </div>
             </div>
           </div>
           
