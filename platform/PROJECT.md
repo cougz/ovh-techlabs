@@ -199,6 +199,11 @@ techlabs-automation/
   - Completed: July 21, 2025
   - Notes: UI FIX COMPLETE: Fixed dark mode visual inconsistencies that created "nested/windowed" appearance on Dashboard page. Removed excessive dark mode styling including redundant container backgrounds, double borders, and nested dark layers. Dashboard now uses clean, flat design matching light mode structure. Changes: removed dark styling from main wrapper, eliminated redundant dark classes on stat cards, simplified Recent Workshops section to single-level containers, cleaned empty state styling, let base CSS handle theming. All 8 UI fix tests passing. Dark mode now has professional appearance with visual parity to light theme.
 
+- [x] **Task ID: DOCKER-HEALTH-FIX-001**
+  - Description: Fix Docker container health states - resolve database schema mismatch for timezone and template columns
+  - Completed: July 21, 2025
+  - Notes: DOCKER FIX COMPLETE: Fixed critical database schema mismatch that was causing Docker containers to switch to unhealthy states. Root cause was missing timezone and template columns in database schema that SQLAlchemy models expected. Fixed by: updating schema.sql to include timezone VARCHAR(50) DEFAULT 'UTC' NOT NULL and template VARCHAR(50) DEFAULT 'Generic' NOT NULL columns, updating workshop_summary view to include new columns, creating .env file with required environment variables, rebuilding containers with fresh database. All containers now starting successfully and remaining healthy - API, Celery workers, and beat scheduler all operational without schema errors.
+
 ## Important Context
 
 ### Known Issues
@@ -289,9 +294,9 @@ techlabs-automation/
 
 ## Next Session Starting Point
 
-**Priority**: Dark mode UI fix completed  
-**Current State**: Production deployment fully verified, timezone-aware dates implemented, template system completed, OVH corporate branding implemented with standalone logo design, dark mode functionality with animated theme switch, application title restored in main header, comprehensive dark mode implementation across all pages, CSV bulk import functionality added to workshop creation, Dashboard dark mode UI inconsistencies fixed
-**Next Action**: System ready for production use with complete feature set including bulk attendee import and clean dark mode UI
+**Priority**: Docker health states fixed  
+**Current State**: Production deployment fully verified, timezone-aware dates implemented, template system completed, OVH corporate branding implemented with standalone logo design, dark mode functionality with animated theme switch, application title restored in main header, comprehensive dark mode implementation across all pages, CSV bulk import functionality added to workshop creation, Dashboard dark mode UI inconsistencies fixed, Docker container health issues resolved with database schema fix
+**Next Action**: System ready for production use with complete feature set including bulk attendee import, clean dark mode UI, and stable Docker deployment
 
 ## Commands Reference
 
