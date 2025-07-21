@@ -1,5 +1,5 @@
 from pydantic_settings import BaseSettings
-from pydantic import Field
+from pydantic import Field, field_validator
 from typing import List, Optional
 import os
 import json
@@ -23,6 +23,20 @@ class Settings(BaseSettings):
     SECRET_KEY: str = "your-secret-key-here"
     DEBUG: bool = True
     CORS_ORIGINS: List[str] = Field(default=["http://localhost:3000"])
+    
+    @field_validator('CORS_ORIGINS', mode='before')
+    @classmethod
+    def parse_cors_origins(cls, v):
+        if isinstance(v, str):
+            if v.strip() == '':
+                return ["http://localhost:3000"]
+            # Try to parse as JSON first
+            try:
+                return json.loads(v)
+            except json.JSONDecodeError:
+                # If not JSON, try comma-separated
+                return [origin.strip() for origin in v.split(",")]
+        return v
     
     # JWT
     JWT_SECRET_KEY: str = "your-jwt-secret-key"
@@ -81,17 +95,6 @@ class Settings(BaseSettings):
     class Config:
         env_file = ".env"
         case_sensitive = True
-        
-        @classmethod
-        def parse_env_var(cls, field_name: str, raw_val: str):
-            if field_name == "CORS_ORIGINS":
-                # Try to parse as JSON first
-                try:
-                    return json.loads(raw_val)
-                except json.JSONDecodeError:
-                    # If not JSON, try comma-separated
-                    return [origin.strip() for origin in raw_val.split(",")]
-            return raw_val
 
 # Global settings instance
 settings = Settings()
