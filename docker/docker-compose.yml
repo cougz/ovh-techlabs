@@ -2,7 +2,7 @@ services:
   # PostgreSQL Database
   postgres:
     image: postgres:15
-    container_name: techlabs-postgres-prod
+    container_name: ovh-techlabs-postgres
     environment:
       POSTGRES_DB: ${DB_NAME}
       POSTGRES_USER: ${DB_USER}
@@ -20,7 +20,7 @@ services:
   # Redis for Celery
   redis:
     image: redis:7-alpine
-    container_name: techlabs-redis-prod
+    container_name: ovh-techlabs-redis
     volumes:
       - redis_data:/data
     healthcheck:
@@ -35,7 +35,7 @@ services:
     build:
       context: ./api
       dockerfile: Dockerfile
-    container_name: techlabs-api-prod
+    container_name: ovh-techlabs-api
     environment:
       - DB_HOST=postgres
       - DB_PORT=5432
@@ -74,7 +74,7 @@ services:
     build:
       context: ./api
       dockerfile: Dockerfile
-    container_name: techlabs-celery-worker-prod
+    container_name: ovh-techlabs-celery-worker
     environment:
       - DB_HOST=postgres
       - DB_PORT=5432
@@ -113,7 +113,7 @@ services:
     build:
       context: ./api
       dockerfile: Dockerfile
-    container_name: techlabs-celery-beat-prod
+    container_name: ovh-techlabs-celery-beat
     environment:
       - DB_HOST=postgres
       - DB_PORT=5432
@@ -149,7 +149,7 @@ services:
     build:
       context: ./frontend
       dockerfile: Dockerfile
-    container_name: techlabs-frontend-prod
+    container_name: ovh-techlabs-frontend
     ports:
       - "80:80"
       - "443:443"
@@ -167,4 +167,4 @@ volumes:
 
 networks:
   default:
-    name: techlabs-network-prod
+    name: ovh-techlabs-network

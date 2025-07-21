@@ -348,13 +348,13 @@ python3 api/tests/test_full_deployment.py
 curl http://localhost/health
 
 # Check application logs
-docker logs techlabs-api-prod
+docker logs ovh-techlabs-api
 
 # Check worker logs
-docker logs techlabs-celery-worker-prod
+docker logs ovh-techlabs-celery-worker
 
 # Database backup
-docker exec techlabs-postgres-prod pg_dump -U admin techlabs > backup_$(date +%Y%m%d).sql
+docker exec ovh-techlabs-postgres pg_dump -U admin techlabs > backup_$(date +%Y%m%d).sql
 
 # Run frontend tests
 cd frontend && npm test
