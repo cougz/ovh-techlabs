@@ -99,8 +99,8 @@ const Dashboard: React.FC = () => {
     return (
       <div className="animate-fade-in">
         <div className="mb-8">
-          <h1 className="text-2xl font-bold text-gray-900">Dashboard</h1>
-          <p className="mt-1 text-sm text-gray-600">
+          <h1 className="text-2xl font-bold text-gray-900 dark:text-gray-100">Dashboard</h1>
+          <p className="mt-1 text-sm text-gray-600 dark:text-gray-300">
             Workshop environment overview and statistics
           </p>
         </div>
@@ -110,8 +110,8 @@ const Dashboard: React.FC = () => {
             <div key={i} className="card">
               <div className="card-body">
                 <div className="animate-pulse">
-                  <div className="h-4 bg-gray-200 rounded w-3/4 mb-2"></div>
-                  <div className="h-8 bg-gray-200 rounded w-1/2"></div>
+                  <div className="h-4 bg-gray-200 dark:bg-gray-600 rounded w-3/4 mb-2"></div>
+                  <div className="h-8 bg-gray-200 dark:bg-gray-600 rounded w-1/2"></div>
                 </div>
               </div>
             </div>
@@ -122,9 +122,9 @@ const Dashboard: React.FC = () => {
   }
 
   return (
-    <div className="animate-fade-in dark:bg-slate-900 dark:border dark:border-slate-700 dark:shadow-2xl dark:p-6 dark:rounded-lg">
+    <div className="animate-fade-in">
       {/* Header */}
-      <div className="mb-8 dark:border-b-2 dark:border-slate-600 dark:pb-8">
+      <div className="mb-8">
         <div className="flex justify-between items-center">
           <div>
             <h1 className="text-2xl font-bold text-gray-900 dark:text-gray-100">Dashboard</h1>
@@ -134,7 +134,7 @@ const Dashboard: React.FC = () => {
           </div>
           <Link
             to="/workshops/new"
-            className="btn-primary dark:bg-primary-600 dark:hover:bg-primary-500 dark:border-primary-500 dark:shadow-lg dark:focus:ring-4 dark:focus:ring-primary-300"
+            className="btn-primary"
           >
             <PlusIcon className="h-4 w-4 mr-2" />
             New Workshop
@@ -145,7 +145,7 @@ const Dashboard: React.FC = () => {
       {/* Stats */}
       <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-4 mb-12">
         {statCards.map((item) => (
-          <div key={item.name} className="card dark:bg-slate-800 dark:border-slate-600 dark:border-2">
+          <div key={item.name} className="card">
             <div className="card-body">
               <div className="flex items-center">
                 <div className="flex-shrink-0">
@@ -170,10 +170,10 @@ const Dashboard: React.FC = () => {
       </div>
 
       {/* Recent Workshops */}
-      <div className="card dark:bg-slate-800 dark:border-slate-600 dark:border-2 dark:mt-4 dark:shadow-lg">
-        <div className="card-header dark:bg-slate-700 dark:border-b-2 dark:border-slate-600">
+      <div className="card">
+        <div className="card-header">
           <div className="flex justify-between items-center">
-            <h3 className="text-lg leading-6 font-medium text-gray-900">
+            <h3 className="text-lg leading-6 font-medium text-gray-900 dark:text-gray-100">
               Recent Workshops
             </h3>
             <Link
@@ -184,11 +184,11 @@ const Dashboard: React.FC = () => {
             </Link>
           </div>
         </div>
-        <div className={`card-body ${workshops.length === 0 ? 'dark:bg-slate-800 dark:border-slate-600 dark:border-2' : ''}`}>
+        <div className="card-body">
           {workshops.length === 0 ? (
-            <div className="text-center py-8 dark:bg-slate-800/50 dark:border dark:border-slate-600 dark:rounded-lg dark:shadow-inner dark:px-8 dark:py-12 dark:m-4">
+            <div className="text-center py-8">
               <AcademicCapIcon 
-                className="mx-auto h-12 w-12 text-gray-400 dark:text-gray-300 dark:drop-shadow-lg" 
+                className="mx-auto h-12 w-12 text-gray-400 dark:text-gray-300" 
                 data-testid="empty-state-icon"
               />
               <h3 className="mt-2 text-sm font-medium text-gray-900 dark:text-gray-100">No workshops</h3>
@@ -198,7 +198,7 @@ const Dashboard: React.FC = () => {
               <div className="mt-6">
                 <Link
                   to="/workshops/new"
-                  className="btn-primary dark:bg-primary-600 dark:hover:bg-primary-500 dark:border-primary-500 dark:shadow-lg dark:focus:ring-4 dark:focus:ring-primary-300"
+                  className="btn-primary"
                 >
                   <PlusIcon className="h-4 w-4 mr-2" />
                   New Workshop
@@ -207,7 +207,7 @@ const Dashboard: React.FC = () => {
             </div>
           ) : (
             <div className="overflow-hidden">
-              <ul className="divide-y divide-gray-200">
+              <ul className="divide-y divide-gray-200 dark:divide-gray-600">
                 {workshops.slice(0, 5).map((workshop) => (
                   <li key={workshop.id} className="py-4">
                     <div className="flex items-center justify-between">
@@ -219,7 +219,7 @@ const Dashboard: React.FC = () => {
                           <div className="flex items-center">
                             <Link
                               to={`/workshops/${workshop.id}`}
-                              className="text-sm font-medium text-gray-900 hover:text-primary-600"
+                              className="text-sm font-medium text-gray-900 dark:text-gray-100 hover:text-primary-600"
                             >
                               {workshop.name}
                             </Link>
@@ -227,12 +227,12 @@ const Dashboard: React.FC = () => {
                               {workshop.status}
                             </span>
                           </div>
-                          <div className="text-sm text-gray-500">
+                          <div className="text-sm text-gray-500 dark:text-gray-400">
                             {workshop.attendee_count} attendees • {workshop.active_attendees} active
                           </div>
                         </div>
                       </div>
-                      <div className="text-sm text-gray-500">
+                      <div className="text-sm text-gray-500 dark:text-gray-400">
                         {new Date(workshop.start_date).toLocaleDateString()}
                       </div>
                     </div>
