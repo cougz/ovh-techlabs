@@ -48,10 +48,10 @@ class TestTerraformNaming(unittest.TestCase):
         self.assertIsNotNone(iam_policy_match, "IAM policy resource not found")
         iam_policy_content = iam_policy_match.group(1)
         
-        # Verify it uses sanitized_username for name
-        self.assertIn('name        = local.sanitized_username', iam_policy_content)
-        # Verify it still uses original username in description
-        self.assertIn('description = "Policy for ${var.username}"', iam_policy_content)
+        # Verify it uses new naming format for name
+        self.assertIn('name        = "access-grant-for-pci-project-${local.sanitized_username}"', iam_policy_content)
+        # Verify it uses new description format with username and project ID
+        self.assertIn('description = "Grants access to ${var.username} for PCI project ${ovh_cloud_project.workshop_project.project_id}"', iam_policy_content)
 
     def test_iam_user_still_uses_original_username(self):
         """Test that IAM user still uses original username for login and description."""

@@ -355,8 +355,8 @@ resource "ovh_me_identity_user" "workshop_user" {
 
 # Create IAM policy
 resource "ovh_iam_policy" "workshop_policy" {
-  name        = local.sanitized_username
-  description = "Policy for ${var.username}"
+  name        = "access-grant-for-pci-project-${local.sanitized_username}"
+  description = "Grants access to ${var.username} for PCI project ${ovh_cloud_project.workshop_project.project_id}"
   identities  = [ovh_me_identity_user.workshop_user.urn]
   resources   = [ovh_cloud_project.workshop_project.urn]
   allow       = ["*"]
