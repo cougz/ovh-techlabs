@@ -180,16 +180,14 @@ describe('CreateWorkshop - Bulk Import', () => {
       expect(mockedAttendeeApi.createAttendee).toHaveBeenCalledTimes(2);
     });
     
-    expect(mockedAttendeeApi.createAttendee).toHaveBeenCalledWith({
+    expect(mockedAttendeeApi.createAttendee).toHaveBeenCalledWith('workshop-123', {
       username: 'john.doe',
-      email: 'john@example.com',
-      workshop_id: 'workshop-123'
+      email: 'john@example.com'
     });
     
-    expect(mockedAttendeeApi.createAttendee).toHaveBeenCalledWith({
+    expect(mockedAttendeeApi.createAttendee).toHaveBeenCalledWith('workshop-123', {
       username: 'jane.smith',
-      email: 'jane@example.com',
-      workshop_id: 'workshop-123'
+      email: 'jane@example.com'
     });
   });
 

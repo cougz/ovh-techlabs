@@ -131,22 +131,19 @@ const CreateWorkshop: React.FC = () => {
     });
     
     const errors: Array<{ attendee: string; error: string }> = [];
-    let completed = 0;
     
     for (const attendee of parsedAttendees) {
       try {
         const attendeeData: CreateAttendeeRequest = {
           username: attendee.username,
-          email: attendee.email,
-          workshop_id: workshopId
+          email: attendee.email
         };
         
-        await attendeeApi.createAttendee(attendeeData);
-        completed++;
+        await attendeeApi.createAttendee(workshopId, attendeeData);
         
         setBulkImportProgress(prev => ({
           ...prev,
-          completed
+          completed: prev.completed + 1
         }));
       } catch (error: any) {
         const errorMessage = error.response?.data?.detail || 'Failed to create attendee';
