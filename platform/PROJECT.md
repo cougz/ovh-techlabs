@@ -204,6 +204,11 @@ techlabs-automation/
   - Completed: July 21, 2025
   - Notes: DOCKER FIX COMPLETE: Fixed critical database schema mismatch that was causing Docker containers to switch to unhealthy states. Root cause was missing timezone and template columns in database schema that SQLAlchemy models expected. Fixed by: updating schema.sql to include timezone VARCHAR(50) DEFAULT 'UTC' NOT NULL and template VARCHAR(50) DEFAULT 'Generic' NOT NULL columns, updating workshop_summary view to include new columns, creating .env file with required environment variables, rebuilding containers with fresh database. All containers now starting successfully and remaining healthy - API, Celery workers, and beat scheduler all operational without schema errors.
 
+- [x] **Task ID: CELERY-HEALTH-FIX-001**
+  - Description: Fix Celery containers health checks - replace incorrect HTTP checks with Celery-specific checks
+  - Completed: July 21, 2025
+  - Notes: CELERY HEALTH FIX COMPLETE: Fixed improper health check configuration that was causing Celery containers to show as unhealthy despite working correctly. Root cause was hardcoded HTTP health check in Dockerfile inherited by all containers. Fixed by: removing hardcoded HEALTHCHECK from Dockerfile, adding proper Celery worker health check using 'celery -A main.celery inspect ping', adding Celery beat health check using Python process verification, configuring health checks per service in docker-compose.yml with 40s start_period. Celery Worker now shows as healthy, both containers fully functional. This resolves the Docker health state issues where containers appeared unhealthy but were processing tasks correctly.
+
 ## Important Context
 
 ### Known Issues
