@@ -21,6 +21,7 @@ import { workshopApi, attendeeApi, deploymentApi } from '../services/api';
 import { Workshop, Attendee, DeploymentLog } from '../types';
 import DropdownMenu from '../components/DropdownMenu';
 import DeploymentLogs from '../components/DeploymentLogs';
+import { useWebSocket } from '../hooks/useWebSocket';
 
 // Error boundary component for debugging
 class ErrorBoundary extends React.Component<
@@ -79,7 +80,23 @@ const WorkshopDetail: React.FC = () => {
   const [isExporting, setIsExporting] = useState(false);
   const attendeeTriggerRefs = useRef<Record<string, HTMLButtonElement | null>>({});
 
-  // Temporary: Disable WebSocket to test if it's the issue
+  // WebSocket for real-time updates
+  useWebSocket({
+    workshopId: id || '',
+    onStatusUpdate: (entityType: string, entityId: string, status: string, details?: any) => {
+      console.log(`WebSocket status update: ${entityType} ${entityId} -> ${status}`, details);
+      // React Query cache invalidation is handled inside useWebSocket hook
+    },
+    onDeploymentLog: (attendeeId: string, logEntry: any) => {
+      console.log(`WebSocket deployment log for ${attendeeId}:`, logEntry);
+      // Invalidate deployment logs to refetch
+      queryClient.invalidateQueries(['deployment-logs', id]);
+    },
+    onDeploymentProgress: (attendeeId: string, progress: number, currentStep: string) => {
+      console.log(`WebSocket deployment progress for ${attendeeId}: ${progress}% - ${currentStep}`);
+      // Real-time progress updates could be stored in component state if needed
+    }
+  });
 
   // Fetch workshop details
   const { data: workshop, isLoading: workshopLoading, error: workshopError } = useQuery<Workshop>(
