@@ -1,7 +1,4 @@
 import React, { useState, useEffect } from 'react';
-import { 
-  CogIcon
-} from '@heroicons/react/24/outline';
 
 const Settings: React.FC = () => {
   const [settings, setSettings] = useState({
