@@ -390,7 +390,7 @@ output "password" {
         """Generate terraform.tfvars content from configuration."""
         # Only include non-OVH variables since OVH credentials come from environment
         tfvars = f'''
-project_description = "{config.get('project_description', 'Workshop Project')}"
+project_description = "{config.get('project_description', 'TechLabs environment')}"
 username            = "{config.get('username', 'workshop-user')}"
 user_email         = "{config.get('email', 'workshop@example.com')}"
 '''

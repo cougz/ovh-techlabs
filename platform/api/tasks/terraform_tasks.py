@@ -124,7 +124,7 @@ def deploy_attendee_resources(self, attendee_id: str):
         # Create terraform workspace
         workspace_name = f"attendee-{attendee_id}"
         terraform_config = {
-            "project_description": f"Workshop project for {attendee.username}",
+            "project_description": f"TechLabs environment for {attendee.username}",
             "username": attendee.username,
             "email": attendee.email
         }

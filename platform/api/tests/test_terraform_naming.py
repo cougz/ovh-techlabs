@@ -20,7 +20,7 @@ class TestTerraformNaming(unittest.TestCase):
         self.test_config = {
             'workshop_id': 'test-workshop',
             'attendee_id': 'test-attendee',
-            'project_description': 'Test Workshop Project',
+            'project_description': 'Test TechLabs Environment Project',
             'username': 'Max.Mustermann',
             'email': 'Max.Mustermann@techlab.ovh'
         }
