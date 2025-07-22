@@ -236,3 +236,65 @@ async def cleanup_workshop_resources(
         "task_ids": task_ids,
         "attendee_count": len([a for a in attendees if a.status in ['active', 'failed']])
     }
+
+
+@router.post("/{workshop_id}/fix-status")
+async def fix_workshop_status(
+    workshop_id: UUID,
+    db: Session = Depends(get_db),
+    current_user: str = Depends(get_current_user)
+):
+    """Fix workshop status inconsistencies by forcing status update based on attendee states"""
+    from services.workshop_status_fix import WorkshopStatusFixService
+    
+    # Validate workshop status and get details
+    validation = WorkshopStatusFixService.validate_workshop_status_consistency(str(workshop_id), db)
+    
+    if validation.get("error"):
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=validation["error"]
+        )
+    
+    if validation["requires_update"]:
+        # Fix the status inconsistency
+        new_status = WorkshopStatusFixService.force_workshop_status_update(str(workshop_id), db)
+        
+        if new_status:
+            return {
+                "message": "Workshop status updated successfully",
+                "old_status": validation["workshop_status"],
+                "new_status": new_status,
+                "attendee_details": validation["status_breakdown"]
+            }
+        else:
+            raise HTTPException(
+                status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+                detail="Failed to update workshop status"
+            )
+    else:
+        return {
+            "message": "Workshop status is already consistent",
+            "current_status": validation["workshop_status"],
+            "attendee_details": validation["status_breakdown"]
+        }
+
+
+@router.get("/{workshop_id}/status-check")  
+async def check_workshop_status_consistency(
+    workshop_id: UUID,
+    db: Session = Depends(get_db),
+    current_user: str = Depends(get_current_user)
+):
+    """Check if workshop status is consistent with attendee states"""
+    from services.workshop_status_fix import WorkshopStatusFixService
+    
+    validation = WorkshopStatusFixService.validate_workshop_status_consistency(str(workshop_id), db)
+    
+    if validation.get("error"):
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=validation["error"]
+        )
+    
+    return validation

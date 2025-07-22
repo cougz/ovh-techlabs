@@ -441,8 +441,13 @@ def deploy_workshop_attendees_sequential(self, workshop_id: str):
                 attendee.status = 'failed'
                 db.commit()
         
-        # Update workshop status using the new service logic (least sane status)
-        new_status = WorkshopStatusService.update_workshop_status_from_attendees(workshop_id, db)
+        # Update workshop status using enhanced service to fix any inconsistencies
+        from services.workshop_status_fix import WorkshopStatusFixService
+        new_status = WorkshopStatusFixService.force_workshop_status_update(workshop_id, db)
+        
+        # Fallback to original service if enhanced service fails
+        if not new_status:
+            new_status = WorkshopStatusService.update_workshop_status_from_attendees(workshop_id, db)
         
         # Create appropriate status message
         if failed_count == 0:
