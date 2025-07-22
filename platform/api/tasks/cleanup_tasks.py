@@ -188,3 +188,65 @@ def cleanup_orphaned_workspaces():
         
     finally:
         db.close()
+
+
+@celery_app.task
+def send_cleanup_warnings():
+    """Send cleanup warnings to attendees 24 hours before environment deletion."""
+    db = SessionLocal()
+    
+    try:
+        now = datetime.now(ZoneInfo("UTC"))
+        # Find workshops scheduled for deletion in approximately 24 hours (23-25 hours to handle timing variations)
+        warning_start = now + timedelta(hours=23)
+        warning_end = now + timedelta(hours=25)
+        
+        # Get workshops that need cleanup warnings
+        # Note: In production, this would use cleanup_warning_sent field to avoid duplicates
+        # For now, we'll send warnings for all qualifying workshops
+        workshops_needing_warning = db.query(Workshop).filter(
+            Workshop.deletion_scheduled_at >= warning_start,
+            Workshop.deletion_scheduled_at <= warning_end,
+            Workshop.status.in_(["completed", "active"])
+        ).all()
+        
+        warnings_sent = 0
+        
+        for workshop in workshops_needing_warning:
+            # Get active attendees for this workshop
+            attendees = db.query(Attendee).filter(
+                Attendee.workshop_id == workshop.id,
+                Attendee.status.in_(["active"])  # Only notify attendees with active resources
+            ).all()
+            
+            # Send warning to each attendee
+            for attendee in attendees:
+                try:
+                    from tasks.notification_tasks import send_cleanup_warning_notification
+                    send_cleanup_warning_notification.delay(
+                        attendee.email,
+                        attendee.username,
+                        workshop.name,
+                        workshop.deletion_scheduled_at.isoformat()
+                    )
+                    warnings_sent += 1
+                    logger.info(f"Queued cleanup warning for {attendee.email} (workshop: {workshop.name})")
+                except Exception as e:
+                    logger.error(f"Failed to send cleanup warning to {attendee.email}: {str(e)}")
+            
+            # Mark warning as sent for this workshop (would be implemented with database migration)
+            # workshop.cleanup_warning_sent = True
+            # db.commit()
+            
+            logger.info(f"Sent cleanup warnings for workshop {workshop.id} ({workshop.name}) to {len(attendees)} attendees")
+        
+        logger.info(f"Cleanup warning check completed. Sent {warnings_sent} warnings for {len(workshops_needing_warning)} workshops")
+        return f"Sent {warnings_sent} warnings for {len(workshops_needing_warning)} workshops"
+        
+    except Exception as e:
+        logger.error(f"Error sending cleanup warnings: {str(e)}")
+        db.rollback()
+        raise
+        
+    finally:
+        db.close()
