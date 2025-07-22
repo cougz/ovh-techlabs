@@ -473,14 +473,10 @@ const WorkshopDetail: React.FC = () => {
   const failedAttendees = attendees.filter(a => a.status === 'failed').length;
   
   // Check if all attendees are actually deployed (handles edge case where workshop status is stale)
-  const allAttendeesDeployed = attendees.length > 0 && attendees.every(a => a.status === 'active');
   const hasDeployedAttendees = activeAttendees > 0;
   
   // Check if resources need cleanup (active or failed attendees that haven't been deleted)
   const needsCleanup = attendees.some(a => ['active', 'failed'].includes(a.status));
-  
-  // Workshop is truly completed when it's marked completed AND no resources remain
-  const isWorkshopCompleted = workshop.status === 'completed' && !needsCleanup;
 
   return (
     <ErrorBoundary>
