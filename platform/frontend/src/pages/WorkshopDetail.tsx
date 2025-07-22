@@ -9,6 +9,7 @@ import {
   PlayIcon,
   StopIcon,
   ExclamationCircleIcon,
+  ExclamationTriangleIcon,
   CheckCircleIcon,
   ClockIcon,
   EllipsisVerticalIcon,
@@ -79,6 +80,7 @@ const WorkshopDetail: React.FC = () => {
   const [deploymentProgress] = useState<Record<string, { progress: number; step: string }>>({});
   const [isExporting, setIsExporting] = useState(false);
   const [isCleanupInProgress, setIsCleanupInProgress] = useState(false);
+  const [isFixingStatus, setIsFixingStatus] = useState(false);
   const attendeeTriggerRefs = useRef<Record<string, HTMLButtonElement | null>>({});
 
   // WebSocket for real-time updates
@@ -368,6 +370,34 @@ const WorkshopDetail: React.FC = () => {
     }
   };
 
+  const handleFixStatus = async () => {
+    if (!workshop) {
+      alert('Workshop data not available');
+      return;
+    }
+    
+    setIsFixingStatus(true);
+    
+    try {
+      const result = await workshopApi.fixWorkshopStatus(workshop.id);
+      
+      if (result.message) {
+        alert(result.message + (result.new_status ? ` (Updated to: ${result.new_status})` : ''));
+      }
+      
+      // Refresh workshop data
+      queryClient.invalidateQueries(['workshop', id]);
+      queryClient.invalidateQueries(['attendees', id]);
+      
+    } catch (error: any) {
+      console.error('Failed to fix status:', error);
+      const errorMessage = error.response?.data?.detail || 'Failed to fix workshop status';
+      alert('Error: ' + errorMessage);
+    } finally {
+      setIsFixingStatus(false);
+    }
+  };
+
   // Handle missing ID
   if (!id) {
     return (
@@ -606,6 +636,17 @@ const WorkshopDetail: React.FC = () => {
                   <DocumentArrowDownIcon className="h-4 w-4 mr-2" />
                   {isExporting ? 'Exporting...' : 'Export Attendee List'}
                 </button>
+                {workshop.status !== 'active' && attendees.some(a => a.status === 'active') && (
+                  <button
+                    onClick={handleFixStatus}
+                    disabled={isFixingStatus}
+                    className="btn-warning"
+                    title="Fix workshop status if it's inconsistent with attendee states"
+                  >
+                    <ExclamationTriangleIcon className="h-4 w-4 mr-2" />
+                    {isFixingStatus ? 'Fixing...' : 'Fix Status'}
+                  </button>
+                )}
                 <button
                   onClick={() => setShowAddAttendee(true)}
                   className="btn-primary"

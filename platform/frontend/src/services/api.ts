@@ -92,6 +92,16 @@ export const workshopApi = {
     const response: AxiosResponse<TaskResponse> = await apiClient.delete(`/api/workshops/${id}/resources`);
     return response.data;
   },
+
+  checkWorkshopStatus: async (id: string): Promise<any> => {
+    const response = await apiClient.get(`/api/workshops/${id}/status-check`);
+    return response.data;
+  },
+
+  fixWorkshopStatus: async (id: string): Promise<any> => {
+    const response = await apiClient.post(`/api/workshops/${id}/fix-status`);
+    return response.data;
+  },
 };
 
 // Attendee API
