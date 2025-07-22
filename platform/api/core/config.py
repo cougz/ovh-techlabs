@@ -64,7 +64,7 @@ class Settings(BaseSettings):
     
     # Workshop
     DEFAULT_WORKSHOP_DURATION_HOURS: int = 8
-    AUTO_CLEANUP_DELAY_HOURS: int = 72
+    AUTO_CLEANUP_DELAY_HOURS: int = 1
     MAX_ATTENDEES_PER_WORKSHOP: int = 50
     
     # Security

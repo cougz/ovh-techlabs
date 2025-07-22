@@ -26,8 +26,9 @@ async def create_workshop(
             detail="End date must be after start date"
         )
     
-    # Calculate deletion schedule (72 hours after end date)
-    deletion_scheduled_at = workshop.end_date + timedelta(hours=72)
+    # Calculate deletion schedule using configurable delay
+    from core.config import settings
+    deletion_scheduled_at = workshop.end_date + timedelta(hours=settings.AUTO_CLEANUP_DELAY_HOURS)
     
     db_workshop = Workshop(
         name=workshop.name,
@@ -129,7 +130,8 @@ async def update_workshop(
     
     # Recalculate deletion schedule if end date changed
     if 'end_date' in update_data:
-        workshop.deletion_scheduled_at = workshop.end_date + timedelta(hours=72)
+        from core.config import settings
+        workshop.deletion_scheduled_at = workshop.end_date + timedelta(hours=settings.AUTO_CLEANUP_DELAY_HOURS)
     
     db.commit()
     db.refresh(workshop)
