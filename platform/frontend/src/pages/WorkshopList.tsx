@@ -75,6 +75,27 @@ const WorkshopList: React.FC = () => {
     }
   };
 
+  // Calculate effective status considering attendee deployment states (same logic as WorkshopDetail)
+  const getEffectiveStatus = (workshop: WorkshopSummary): WorkshopStatus => {
+    // If workshop status is not planning, use the regular status
+    if (workshop.status !== 'planning') {
+      return workshop.status;
+    }
+    
+    // Special logic for planning status - check actual attendee deployment states
+    if (workshop.status === 'planning') {
+      const allAttendeesDeployed = workshop.active_attendees === workshop.attendee_count;
+      const partiallyDeployed = workshop.active_attendees > 0 && workshop.active_attendees < workshop.attendee_count;
+      const noAttendeesDeployed = workshop.active_attendees === 0;
+      
+      if (allAttendeesDeployed) return 'active';
+      if (partiallyDeployed) return 'deploying'; // Show as deploying for partially deployed
+      if (noAttendeesDeployed) return 'planning';
+    }
+    
+    return 'planning'; // fallback
+  };
+
   const formatDate = (dateString: string) => {
     return new Date(dateString).toLocaleDateString('en-US', {
       year: 'numeric',
@@ -264,7 +285,7 @@ const WorkshopList: React.FC = () => {
                 <div className="flex items-center justify-between">
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center space-x-3">
-                      {getStatusIcon(workshop.status)}
+                      {getStatusIcon(getEffectiveStatus(workshop))}
                       <div className="flex-1 min-w-0">
                         <div className="flex items-center space-x-2">
                           <Link
@@ -273,8 +294,8 @@ const WorkshopList: React.FC = () => {
                           >
                             {workshop.name}
                           </Link>
-                          <span className={`${getStatusClass(workshop.status)} whitespace-nowrap`}>
-                            {workshop.status}
+                          <span className={`${getStatusClass(getEffectiveStatus(workshop))} whitespace-nowrap`}>
+                            {getEffectiveStatus(workshop)}
                           </span>
                         </div>
                         {workshop.description && (
@@ -316,7 +337,7 @@ const WorkshopList: React.FC = () => {
                       trigger={{ current: triggerRefs.current[workshop.id] }}
                     >
                       <div className="py-1">
-                        {workshop.status === 'planning' && (
+                        {getEffectiveStatus(workshop) === 'planning' && (
                           <button
                             onClick={() => handleAction('deploy', workshop.id)}
                             className="flex items-center w-full px-4 py-2 text-sm text-gray-700 hover:bg-gray-50"
@@ -325,7 +346,7 @@ const WorkshopList: React.FC = () => {
                             Deploy Workshop
                           </button>
                         )}
-                        {(workshop.status === 'active' || workshop.status === 'completed') && (
+                        {(getEffectiveStatus(workshop) === 'active' || getEffectiveStatus(workshop) === 'completed') && (
                           <button
                             onClick={() => handleAction('cleanup', workshop.id)}
                             className="flex items-center w-full px-4 py-2 text-sm text-gray-700 hover:bg-gray-50"
