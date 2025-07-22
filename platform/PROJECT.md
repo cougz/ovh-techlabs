@@ -64,10 +64,13 @@ techlabs-automation/
 ### Current Sprint
 
 #### 🔴 In Progress
-- None
+- **Task ID: STATUS-FIX-001** - Fix Workshop Status Inconsistency
 
 #### 📋 Backlog
-- None currently
+- **Task ID: PASSWORD-GEN-001** - Implement Random Password Generation
+- **Task ID: LOGIN-PREFIX-001** - Configurable Login Prefix System
+- **Task ID: RETRY-DEPLOY-001** - Add Deployment Retry Functionality
+- **Task ID: CLEANUP-NOTIFY-001** - Environment Cleanup Notification with TDD
 
 #### ✅ Completed
 - [x] **Task ID: SETUP-001**
@@ -336,9 +339,31 @@ techlabs-automation/
 
 ## Next Session Starting Point
 
-**Priority**: All required enhancements completed  
-**Current State**: Production deployment fully verified, timezone-aware dates implemented, template system completed, OVH corporate branding implemented with standalone logo design, dark mode functionality with animated theme switch, application title restored in main header, comprehensive dark mode implementation across all pages, CSV bulk import functionality with enforced username format validation, Dashboard dark mode UI inconsistencies fixed, Docker container health issues resolved with database schema fix, Terraform resource naming issues resolved for OVH IAM policy compliance, project descriptions updated to 'TechLabs environment' branding, IAM policy names and descriptions enhanced for better clarity and traceability
-**Next Action**: System fully ready for production use with complete feature set including OVH-compliant bulk import, professional branding, stable Docker deployment, and comprehensive IAM policy management
+**Priority**: Fix Workshop Status Inconsistency (STATUS-FIX-001)
+**Current State**: Production deployment fully verified with all core features implemented. New bug fixes and improvements identified for enhanced user experience.
+**Next Action**: Implement proper workshop status management to ensure status accurately reflects deployment state
+
+## Pending Tasks Details
+
+### STATUS-FIX-001: Fix Workshop Status Inconsistency
+**Issue**: Workshop remains in "planning" state even when all attendees are deployed. Sidebar shows "Ready to deploy" while attendees are already deployed.
+**Solution**: Implement automatic status transitions based on attendee deployment state.
+
+### PASSWORD-GEN-001: Implement Random Password Generation  
+**Issue**: Hardcoded password "TempPassword123!" is a security risk.
+**Solution**: Generate unique, secure passwords for each attendee.
+
+### LOGIN-PREFIX-001: Configurable Login Prefix System
+**Issue**: OVHcloud login prefix "0541-8821-89/" is hardcoded.
+**Solution**: Add Settings page to configure prefix and export format.
+
+### RETRY-DEPLOY-001: Add Deployment Retry Functionality
+**Issue**: No way to retry failed deployments.
+**Solution**: Add retry buttons and automatic retry with exponential backoff.
+
+### CLEANUP-NOTIFY-001: Environment Cleanup Notification with TDD
+**Issue**: Users don't know when environments will be automatically deleted.
+**Solution**: Display cleanup time notification based on workshop end time + delay.
 
 ## Commands Reference
 
