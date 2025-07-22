@@ -295,14 +295,19 @@ def destroy_attendee_resources(self, attendee_id: str):
         deployment_log.status = "running"
         db.commit()
         
-        # Destroy terraform resources
+        # Destroy terraform resources with retry mechanism
         workspace_name = f"attendee-{attendee_id}"
         
-        logger.info(f"Destroying terraform resources for attendee {attendee_id}")
+        logger.info(f"Destroying terraform resources for attendee {attendee_id} with retry mechanism")
         
-        success, destroy_output = terraform_service.destroy(workspace_name)
+        success, destroy_output = terraform_service.destroy_with_retry(workspace_name, max_retries=2)
         if not success:
-            raise Exception(f"Terraform destroy failed: {destroy_output}")
+            # Check if this is a retryable error at the task level
+            if terraform_service._is_retryable_error(destroy_output) and self.request.retries < 2:
+                logger.info(f"Terraform destroy failed with retryable error, retrying task. Attempt {self.request.retries + 1}/3")
+                raise self.retry(countdown=120, max_retries=2)  # Wait 2 minutes before retry
+            else:
+                raise Exception(f"Terraform destroy failed after all retries: {destroy_output}")
         
         # Clean up workspace
         terraform_service.cleanup_workspace(workspace_name)

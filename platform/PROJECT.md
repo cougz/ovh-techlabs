@@ -67,13 +67,19 @@ techlabs-automation/
 None currently
 
 #### 📋 Backlog
-- **Task ID: WORKSHOP-HEADER-STATUS-001** - Fix workshop header status display inconsistency - header shows "planning" but content shows "All attendees deployed" (CRITICAL PRIORITY)
+- **Task ID: CLEANUP-WORKER-001** - Cleanup process hanging/failing - 15+ minutes with no progress, workers appear idle (CRITICAL PRIORITY)
+- **Task ID: WORKER-SYSTEM-002** - Background job system malfunction - workers not processing cleanup jobs (CRITICAL PRIORITY)
 - **Task ID: STATUS-AUDIT-001** - Audit all status display locations for consistency across header, content cards, and status indicators (HIGH PRIORITY)
 - **Task ID: STATUS-INDICATORS-001** - Enhance status indicator system with comprehensive states and visual progress (MEDIUM PRIORITY)
 - **Task ID: CLEANUP-PRESENTATION-001** - Improve cleanup schedule presentation and remove inappropriate warning styling (MEDIUM PRIORITY)
 - **Task ID: STATE-VALIDATION-001** - Add workshop state validation with client-side validation and error handling (MEDIUM PRIORITY)
 
 #### ✅ Completed
+- [x] **Task ID: WORKSHOP-HEADER-STATUS-001**
+  - Description: Fix workshop header status display inconsistency - header shows "planning" but content shows "All attendees deployed"
+  - Completed: July 22, 2025
+  - Notes: Added getEffectiveStatus() function, synchronized header status badge with dynamic status logic, fixed inconsistency between header and main content areas
+
 - [x] **Task ID: SETUP-001**
   - Description: Initial project setup and foundation
   - Completed: July 8, 2025

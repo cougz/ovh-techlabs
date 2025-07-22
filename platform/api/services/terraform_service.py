@@ -86,7 +86,8 @@ class TerraformService:
         command: List[str], 
         workspace_path: Path,
         capture_output: bool = True,
-        env: Optional[Dict[str, str]] = None
+        env: Optional[Dict[str, str]] = None,
+        timeout: int = 1800  # Default 30 minutes
     ) -> Tuple[int, str, str]:
         """Run a terraform command and return the result."""
         cmd = [self.terraform_binary] + command
@@ -141,7 +142,7 @@ class TerraformService:
                 capture_output=capture_output,
                 text=True,
                 env=terraform_env,
-                timeout=1800  # 30 minutes timeout
+                timeout=timeout
             )
             
             # Log detailed results
@@ -159,8 +160,9 @@ class TerraformService:
             return result.returncode, result.stdout, result.stderr
             
         except subprocess.TimeoutExpired:
-            logger.error(f"Terraform command timed out after 30 minutes")
-            return 1, "", "Command timed out after 30 minutes"
+            timeout_minutes = timeout // 60
+            logger.error(f"Terraform command timed out after {timeout_minutes} minutes")
+            return 1, "", f"Command timed out after {timeout_minutes} minutes"
         except FileNotFoundError:
             logger.error(f"Terraform binary not found: {self.terraform_binary}")
             return 1, "", f"Terraform binary not found: {self.terraform_binary}"
@@ -308,14 +310,17 @@ class TerraformService:
             return False, output, False
     
     def destroy(self, workspace_name: str) -> Tuple[bool, str]:
-        """Run terraform destroy."""
+        """Run terraform destroy with shorter timeout."""
         workspace_path = self._get_workspace_path(workspace_name)
         
         if not workspace_path.exists():
             return False, "Workspace does not exist"
         
+        # Use shorter timeout for destroy operations (10 minutes instead of 30)
         return_code, stdout, stderr = self._run_terraform_command(
-            ["destroy", "-auto-approve", "-parallelism=1"], workspace_path
+            ["destroy", "-auto-approve", "-parallelism=1"], 
+            workspace_path,
+            timeout=600  # 10 minutes timeout
         )
         
         output = stdout + stderr
@@ -327,6 +332,61 @@ class TerraformService:
             logger.error(f"Terraform destroy failed", workspace=workspace_name, output=output)
         
         return success, output
+    
+    def destroy_with_retry(self, workspace_name: str, max_retries: int = 2) -> Tuple[bool, str]:
+        """Run terraform destroy with retry mechanism for handling timeouts."""
+        last_error = ""
+        
+        for attempt in range(max_retries + 1):  # +1 for initial attempt
+            if attempt > 0:
+                logger.info(f"Retrying terraform destroy for workspace {workspace_name}, attempt {attempt + 1}/{max_retries + 1}")
+            
+            success, output = self.destroy(workspace_name)
+            
+            if success:
+                if attempt > 0:
+                    logger.info(f"Terraform destroy succeeded on retry attempt {attempt + 1} for workspace {workspace_name}")
+                return True, output
+            
+            last_error = output
+            
+            # Check if error is retryable (timeout or transient network issues)
+            if self._is_retryable_error(output):
+                if attempt < max_retries:
+                    # Exponential backoff: wait 30s, then 60s
+                    wait_time = 30 * (2 ** attempt)
+                    logger.info(f"Terraform destroy failed with retryable error, waiting {wait_time}s before retry")
+                    import time
+                    time.sleep(wait_time)
+                    continue
+                else:
+                    # Max retries reached for retryable error
+                    break
+            else:
+                # Non-retryable error, fail immediately
+                logger.error(f"Terraform destroy failed with non-retryable error: {output}")
+                return False, f"Non-retryable error: {last_error}"
+        
+        logger.error(f"Terraform destroy failed after {max_retries + 1} attempts for workspace {workspace_name}")
+        return False, f"Failed after {max_retries + 1} attempts. Last error: {last_error}"
+    
+    def _is_retryable_error(self, error_output: str) -> bool:
+        """Check if an error is retryable."""
+        retryable_patterns = [
+            "timed out",
+            "timeout",
+            "connection reset",
+            "network is unreachable",
+            "temporary failure in name resolution",
+            "ovh api error",
+            "rate limit",
+            "502 bad gateway",
+            "503 service unavailable",
+            "504 gateway timeout"
+        ]
+        
+        error_lower = error_output.lower()
+        return any(pattern in error_lower for pattern in retryable_patterns)
     
     def get_outputs(self, workspace_name: str) -> Dict:
         """Get terraform outputs."""
