@@ -535,7 +535,7 @@ const WorkshopDetail: React.FC = () => {
             </div>
             
             <div className="flex flex-wrap items-center gap-3 flex-shrink-0">
-              {workshop.status === 'planning' && attendees.length > 0 && (
+              {workshop.status === 'planning' && attendees.length > 0 && !allAttendeesDeployed && deployingAttendees === 0 && (
                 <button
                   onClick={handleDeployWorkshop}
                   disabled={deployWorkshopMutation.isLoading}
