@@ -16,11 +16,10 @@ class TestConfigurableLoginPrefix:
     def test_should_apply_login_prefix_to_exported_credentials(self):
         """Test that credentials export includes configurable login prefix"""
         
-        # Mock attendee credentials with username
-        mock_credentials = {
-            "username": "john-doe",
-            "password": "SecurePass123!",
-            "ovh_project_id": "test-project-123"
+        # Mock terraform outputs
+        mock_outputs = {
+            "username": {"value": "john-doe"},
+            "password": {"value": "SecurePass123!"}
         }
         
         # Mock configuration with login prefix
@@ -28,10 +27,19 @@ class TestConfigurableLoginPrefix:
             "login_prefix": "0541-8821-89/"
         }
         
-        with patch('api.routes.attendees.get_attendee_credentials') as mock_get_creds, \
+        with patch('models.attendee.Attendee') as mock_attendee_model, \
+             patch('services.terraform_service.terraform_service.get_outputs') as mock_get_outputs, \
              patch('api.routes.attendees.get_login_prefix_config') as mock_get_config:
             
-            mock_get_creds.return_value = mock_credentials
+            # Mock attendee object
+            mock_attendee = MagicMock()
+            mock_attendee.status = "active"
+            mock_attendee.ovh_project_id = "test-project-123"
+            mock_attendee.ovh_user_urn = "urn:ovh:test"
+            
+            mock_attendee_model.query.filter.return_value.first.return_value = mock_attendee
+            
+            mock_get_outputs.return_value = mock_outputs
             mock_get_config.return_value = mock_config
             
             # Call the credentials endpoint
@@ -48,10 +56,10 @@ class TestConfigurableLoginPrefix:
     def test_should_use_empty_prefix_when_not_configured(self):
         """Test that credentials work normally when no prefix is configured"""
         
-        mock_credentials = {
-            "username": "jane-smith", 
-            "password": "AnotherPass456!",
-            "ovh_project_id": "test-project-456"
+        # Mock terraform outputs
+        mock_outputs = {
+            "username": {"value": "jane-smith"},
+            "password": {"value": "AnotherPass456!"}
         }
         
         # No login prefix configured
@@ -59,10 +67,19 @@ class TestConfigurableLoginPrefix:
             "login_prefix": ""
         }
         
-        with patch('api.routes.attendees.get_attendee_credentials') as mock_get_creds, \
+        with patch('models.attendee.Attendee') as mock_attendee_model, \
+             patch('services.terraform_service.terraform_service.get_outputs') as mock_get_outputs, \
              patch('api.routes.attendees.get_login_prefix_config') as mock_get_config:
             
-            mock_get_creds.return_value = mock_credentials
+            # Mock attendee object
+            mock_attendee = MagicMock()
+            mock_attendee.status = "active"
+            mock_attendee.ovh_project_id = "test-project-456"
+            mock_attendee.ovh_user_urn = "urn:ovh:test"
+            
+            mock_attendee_model.query.filter.return_value.first.return_value = mock_attendee
+            
+            mock_get_outputs.return_value = mock_outputs
             mock_get_config.return_value = mock_config
             
             response = client.get("/api/attendees/test-attendee-id/credentials")

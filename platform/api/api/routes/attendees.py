@@ -11,6 +11,12 @@ from api.routes.auth import get_current_user
 from schemas.attendee import AttendeeCreate, AttendeeResponse, AttendeeCredentials
 from core.security import encrypt_data, decrypt_data, generate_password
 
+# Import configuration functions for login prefix
+def get_login_prefix_config():
+    """Import and use the settings configuration"""
+    from api.routes.config_routes import get_login_prefix_config as get_config
+    return get_config()
+
 router = APIRouter()
 
 @router.post("/", response_model=AttendeeResponse)
@@ -145,8 +151,15 @@ async def get_attendee_credentials(
             detail="OVH IAM credentials not found in Terraform outputs"
         )
     
+    # Apply configurable login prefix
+    config = get_login_prefix_config()
+    login_prefix = config.get("login_prefix", "")
+    
+    # Add prefix to username if configured
+    final_username = f"{login_prefix}{ovh_username}" if login_prefix else ovh_username
+    
     return AttendeeCredentials(
-        username=ovh_username,
+        username=final_username,
         password=ovh_password,
         ovh_project_id=attendee.ovh_project_id,
         ovh_user_urn=attendee.ovh_user_urn

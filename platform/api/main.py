@@ -8,7 +8,7 @@ from typing import Optional
 from core.config import settings
 from core.database import engine, Base
 from core.celery_app import celery_app
-from api.routes import workshops, attendees, deployments, auth, health, internal
+from api.routes import workshops, attendees, deployments, auth, health, internal, config_routes
 from api.websocket import websocket_endpoint, manager
 from core.logging import setup_logging
 
@@ -50,6 +50,7 @@ app.include_router(auth.router, prefix="/api/auth", tags=["authentication"])
 app.include_router(workshops.router, prefix="/api/workshops", tags=["workshops"])
 app.include_router(attendees.router, prefix="/api/attendees", tags=["attendees"])
 app.include_router(deployments.router, prefix="/api/deployments", tags=["deployments"])
+app.include_router(config_routes.router, prefix="/api/settings", tags=["settings"])
 app.include_router(internal.router, prefix="/internal", tags=["internal"])
 
 # Root endpoint
