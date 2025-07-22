@@ -101,7 +101,7 @@ class WorkshopStatusFixService:
             ).all()
             
             attendee_statuses = [a.status for a in attendees]
-            calculated_status = WorkshopStatusService._calculate_least_sane_status(attendee_statuses)
+            calculated_status = WorkshopStatusService.calculate_workshop_status_from_attendees(attendee_statuses)
             
             is_consistent = workshop.status == calculated_status
             

@@ -98,10 +98,6 @@ export const workshopApi = {
     return response.data;
   },
 
-  fixWorkshopStatus: async (id: string): Promise<any> => {
-    const response = await apiClient.post(`/api/workshops/${id}/fix-status`);
-    return response.data;
-  },
 };
 
 // Attendee API
