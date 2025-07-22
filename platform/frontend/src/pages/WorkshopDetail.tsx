@@ -475,6 +475,12 @@ const WorkshopDetail: React.FC = () => {
   // Check if all attendees are actually deployed (handles edge case where workshop status is stale)
   const allAttendeesDeployed = attendees.length > 0 && attendees.every(a => a.status === 'active');
   const hasDeployedAttendees = activeAttendees > 0;
+  
+  // Check if resources need cleanup (active or failed attendees that haven't been deleted)
+  const needsCleanup = attendees.some(a => ['active', 'failed'].includes(a.status));
+  
+  // Workshop is truly completed when it's marked completed AND no resources remain
+  const isWorkshopCompleted = workshop.status === 'completed' && !needsCleanup;
 
   return (
     <ErrorBoundary>
@@ -515,7 +521,7 @@ const WorkshopDetail: React.FC = () => {
                 </button>
               )}
               
-              {(workshop.status === 'active' || workshop.status === 'completed' || hasDeployedAttendees) && (
+              {needsCleanup && (workshop.status === 'active' || workshop.status === 'completed' || hasDeployedAttendees) && (
                 <button
                   onClick={handleCleanupWorkshop}
                   disabled={isCleanupInProgress}
@@ -586,7 +592,8 @@ const WorkshopDetail: React.FC = () => {
                     {workshop.status === 'planning' && 'Ready to deploy'}
                     {workshop.status === 'deploying' && 'Deployment in progress'}
                     {workshop.status === 'active' && 'Workshop running'}
-                    {workshop.status === 'completed' && 'Workshop completed'}
+                    {workshop.status === 'completed' && needsCleanup && 'Workshop completed - resources active'}
+                    {workshop.status === 'completed' && !needsCleanup && 'Workshop completed - resources cleaned up'}
                     {workshop.status === 'failed' && 'Deployment failed'}
                     {workshop.status === 'deleting' && 'Cleanup in progress'}
                   </p>
