@@ -67,6 +67,8 @@ techlabs-automation/
 None currently
 
 #### 📋 Backlog
+- **Task ID: WORKSHOP-HEADER-STATUS-001** - Fix workshop header status display inconsistency - header shows "planning" but content shows "All attendees deployed" (CRITICAL PRIORITY)
+- **Task ID: STATUS-AUDIT-001** - Audit all status display locations for consistency across header, content cards, and status indicators (HIGH PRIORITY)
 - **Task ID: STATUS-INDICATORS-001** - Enhance status indicator system with comprehensive states and visual progress (MEDIUM PRIORITY)
 - **Task ID: CLEANUP-PRESENTATION-001** - Improve cleanup schedule presentation and remove inappropriate warning styling (MEDIUM PRIORITY)
 - **Task ID: STATE-VALIDATION-001** - Add workshop state validation with client-side validation and error handling (MEDIUM PRIORITY)

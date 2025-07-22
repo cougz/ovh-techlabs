@@ -507,6 +507,28 @@ const WorkshopDetail: React.FC = () => {
     return 'Ready to deploy'; // fallback
   };
 
+  // Calculate effective status for header display (simple status string)
+  const getEffectiveStatus = () => {
+    // If workshop status is not planning, use the regular status logic
+    if (workshop.status !== 'planning') {
+      if (workshop.status === 'deploying' || deployingAttendees > 0) return 'deploying';
+      if (workshop.status === 'active') return 'active';
+      if (workshop.status === 'completed') return 'completed';
+      if (workshop.status === 'failed') return 'failed';
+      if (workshop.status === 'deleting') return 'deleting';
+    }
+    
+    // Special logic for planning status - check actual attendee deployment states
+    if (workshop.status === 'planning') {
+      if (deployingAttendees > 0) return 'deploying';
+      if (allAttendeesDeployed) return 'active';
+      if (partiallyDeployed) return 'deploying'; // Show as deploying for partially deployed
+      if (noAttendeesDeployed) return 'planning';
+    }
+    
+    return 'planning'; // fallback
+  };
+
   return (
     <ErrorBoundary>
       <div className="animate-fade-in">
@@ -523,10 +545,10 @@ const WorkshopDetail: React.FC = () => {
           <div className="flex flex-col lg:flex-row lg:justify-between lg:items-start gap-4">
             <div className="flex-1 min-w-0">
               <div className="flex items-center space-x-3">
-                {getStatusIcon(workshop.status)}
+                {getStatusIcon(getEffectiveStatus())}
                 <h1 className="text-2xl font-bold text-gray-900 truncate">{workshop.name}</h1>
-                <span className={`${getStatusClass(workshop.status)} whitespace-nowrap flex-shrink-0`}>
-                  {workshop.status}
+                <span className={`${getStatusClass(getEffectiveStatus())} whitespace-nowrap flex-shrink-0`}>
+                  {getEffectiveStatus()}
                 </span>
               </div>
               {workshop.description && (
