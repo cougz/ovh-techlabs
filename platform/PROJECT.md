@@ -66,8 +66,10 @@ techlabs-automation/
 #### 🔴 In Progress
 None currently
 
-#### 📋 Backlog  
-None currently
+#### 📋 Backlog
+- **Task ID: STATUS-INDICATORS-001** - Enhance status indicator system with comprehensive states and visual progress (MEDIUM PRIORITY)
+- **Task ID: CLEANUP-PRESENTATION-001** - Improve cleanup schedule presentation and remove inappropriate warning styling (MEDIUM PRIORITY)
+- **Task ID: STATE-VALIDATION-001** - Add workshop state validation with client-side validation and error handling (MEDIUM PRIORITY)
 
 #### ✅ Completed
 - [x] **Task ID: SETUP-001**
@@ -309,6 +311,21 @@ None currently
   - Description: Fix cleanup resources button disappearing and workshop status not updating to completed properly
   - Completed: July 22, 2025
   - Notes: CLEANUP BUTTON LOGIC FIXED: Improved cleanup button visibility to only show when resources actually need cleanup (attendees with active/failed status). Enhanced status display to differentiate "completed with active resources" vs "completed with resources cleaned up". Button properly hides after successful cleanup when all attendees are "deleted" status, providing accurate user feedback.
+
+- [x] **Task ID: CLEANUP-CALC-001**
+  - Description: Fix cleanup schedule calculation logic - incorrect deletion date display
+  - Completed: July 22, 2025
+  - Notes: CLEANUP SCHEDULE CALCULATION FIXED: Resolved hardcoded 72-hour delay causing incorrect deletion dates (July 25 instead of July 22 at 7:15 PM). Changed AUTO_CLEANUP_DELAY_HOURS from 72 to 1 hour and updated both workshop creation and update endpoints to use configurable settings. Added comprehensive test suite validating cleanup delay logic. Cleanup schedule now calculates correctly: workshop end time + configured delay.
+
+- [x] **Task ID: WORKSHOP-STATUS-001**  
+  - Description: Implement dynamic workshop status logic to show accurate deployment state
+  - Completed: July 22, 2025
+  - Notes: DYNAMIC WORKSHOP STATUS COMPLETE: Fixed misleading status display showing "Ready to deploy" when all attendees were already deployed. Implemented intelligent status evaluation considering both workshop status AND actual attendee deployment states. Shows "All attendees deployed", "Partially deployed", or "Deployment in progress" based on real attendee states. Added comprehensive test suite validating all status scenarios. Status display now accurately reflects actual deployment state.
+
+- [x] **Task ID: DEPLOY-BUTTON-001**
+  - Description: Fix Deploy Workshop button visibility - button remains visible when deployment complete  
+  - Completed: July 22, 2025
+  - Notes: DEPLOY BUTTON LOGIC FIXED: Enhanced button visibility logic to consider actual attendee deployment states. Button now hides when all attendees are deployed or currently deploying, preventing user confusion and accidental re-deployments. Added conditions: !allAttendeesDeployed && deployingAttendees === 0. Button appears only when deployment action is actually needed. Added comprehensive test suite validating all visibility scenarios.
 
 ## Important Context
 
