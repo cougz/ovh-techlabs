@@ -8,7 +8,6 @@ import {
   TrashIcon,
   PlayIcon,
   StopIcon,
-  ExclamationCircleIcon,
   ExclamationTriangleIcon,
   CheckCircleIcon,
   ClockIcon,
@@ -406,7 +405,7 @@ const WorkshopDetail: React.FC = () => {
         <div className="card">
           <div className="card-body">
             <div className="text-center py-8">
-              <ExclamationCircleIcon className="mx-auto h-12 w-12 text-danger-400" />
+              <XMarkIcon className="mx-auto h-12 w-12 text-danger-400" />
               <h3 className="mt-2 text-sm font-medium text-gray-900">Invalid Workshop ID</h3>
               <p className="mt-1 text-sm text-gray-500">
                 No workshop ID provided in the URL.
@@ -455,7 +454,7 @@ const WorkshopDetail: React.FC = () => {
         <div className="card">
           <div className="card-body">
             <div className="text-center py-8">
-              <ExclamationCircleIcon className="mx-auto h-12 w-12 text-danger-400" />
+              <XMarkIcon className="mx-auto h-12 w-12 text-danger-400" />
               <h3 className="mt-2 text-sm font-medium text-gray-900">Workshop not found</h3>
               <p className="mt-1 text-sm text-gray-500">
                 The workshop you're looking for doesn't exist or has been deleted.

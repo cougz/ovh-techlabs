@@ -9,7 +9,6 @@ import {
   CalendarIcon,
   UserGroupIcon,
   CheckCircleIcon,
-  ExclamationCircleIcon,
   ClockIcon,
   PlayIcon,
   StopIcon,
@@ -151,7 +150,7 @@ const WorkshopList: React.FC = () => {
         <div className="card">
           <div className="card-body">
             <div className="text-center py-8">
-              <ExclamationCircleIcon className="mx-auto h-12 w-12 text-danger-400" />
+              <XMarkIcon className="mx-auto h-12 w-12 text-danger-400" />
               <h3 className="mt-2 text-sm font-medium text-gray-900">Error loading workshops</h3>
               <p className="mt-1 text-sm text-gray-500">
                 There was a problem loading the workshop data.

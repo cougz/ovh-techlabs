@@ -13,7 +13,6 @@ import {
   EyeSlashIcon,
   ClipboardDocumentIcon,
   CheckCircleIcon,
-  ExclamationCircleIcon,
   ClockIcon,
   XMarkIcon
 } from '@heroicons/react/24/outline';
@@ -128,7 +127,7 @@ const AttendeeView: React.FC = () => {
         <div className="card">
           <div className="card-body">
             <div className="text-center py-8">
-              <ExclamationCircleIcon className="mx-auto h-12 w-12 text-danger-400" />
+              <XMarkIcon className="mx-auto h-12 w-12 text-danger-400" />
               <h3 className="mt-2 text-sm font-medium text-gray-900">Attendee not found</h3>
               <p className="mt-1 text-sm text-gray-500">
                 The attendee you're looking for doesn't exist or has been deleted.

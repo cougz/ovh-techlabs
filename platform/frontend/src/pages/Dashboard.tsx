@@ -6,7 +6,6 @@ import {
   UserGroupIcon, 
   CloudIcon, 
   CheckCircleIcon,
-  ExclamationCircleIcon,
   ClockIcon,
   PlusIcon,
   XMarkIcon

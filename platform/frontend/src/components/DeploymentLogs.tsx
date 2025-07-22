@@ -3,7 +3,7 @@ import {
   ChevronDownIcon, 
   ChevronUpIcon,
   DocumentTextIcon,
-  ExclamationCircleIcon,
+  XMarkIcon,
   CheckCircleIcon,
   ClockIcon 
 } from '@heroicons/react/24/outline';
@@ -35,7 +35,7 @@ const DeploymentLogs: React.FC<DeploymentLogsProps> = ({
       case 'completed':
         return <CheckCircleIcon className="h-4 w-4 text-success-500" />;
       case 'failed':
-        return <ExclamationCircleIcon className="h-4 w-4 text-danger-500" />;
+        return <XMarkIcon className="h-4 w-4 text-danger-500" />;
       case 'running':
       case 'started':
         return <ClockIcon className="h-4 w-4 text-warning-500 animate-spin" />;
