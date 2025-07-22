@@ -67,7 +67,6 @@ techlabs-automation/
 None currently
 
 #### 📋 Backlog
-- **Task ID: CLEANUP-WORKER-001** - Cleanup process hanging/failing - 15+ minutes with no progress, workers appear idle (CRITICAL PRIORITY)
 - **Task ID: WORKER-SYSTEM-002** - Background job system malfunction - workers not processing cleanup jobs (CRITICAL PRIORITY)
 - **Task ID: STATUS-AUDIT-001** - Audit all status display locations for consistency across header, content cards, and status indicators (HIGH PRIORITY)
 - **Task ID: STATUS-INDICATORS-001** - Enhance status indicator system with comprehensive states and visual progress (MEDIUM PRIORITY)
@@ -75,6 +74,11 @@ None currently
 - **Task ID: STATE-VALIDATION-001** - Add workshop state validation with client-side validation and error handling (MEDIUM PRIORITY)
 
 #### ✅ Completed
+- [x] **Task ID: CLEANUP-WORKER-001**
+  - Description: Cleanup process hanging/failing - 15+ minutes with no progress, workers appear idle
+  - Completed: July 22, 2025
+  - Notes: Resolved cleanup hanging by implementing 10-minute timeout (reduced from 30 minutes), destroy_with_retry mechanism with exponential backoff, intelligent error detection for retryable vs permanent failures, enhanced Celery task with retry logic. Added comprehensive test coverage with 4 tests validating timeout and retry behavior.
+
 - [x] **Task ID: WORKSHOP-HEADER-STATUS-001**
   - Description: Fix workshop header status display inconsistency - header shows "planning" but content shows "All attendees deployed"
   - Completed: July 22, 2025
