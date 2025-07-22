@@ -24,12 +24,12 @@ This is actively maintained as part of OVHcloud's technical enablement and partn
 
 ## 🎯 About OVHcloud TechLabs
 
-OVHcloud TechLabs is our flagship technical workshop event designed to provide hands-on experience with OVHcloud services. This repository contains the complete platform used to deliver these events:
+OVHcloud TechLabs is our technical workshop event designed to provide hands-on experience with OVHcloud services. This repository contains the complete platform used to deliver these events:
 
 - **Automated Infrastructure**: Deploy isolated cloud environments for each workshop attendee
 - **Workshop Content**: Step-by-step tutorials and workbooks for various OVHcloud services
 - **Self-Service Platform**: Web dashboard for workshop management and monitoring
-- **Scalable Architecture**: Support for workshops with up to 50 attendees
+- **Scalable Architecture**: Support for workshops with multiple attendees
 
 ## 📁 Repository Structure
 
@@ -125,7 +125,7 @@ Step-by-step guides for workshop attendees:
 - **Backend**: FastAPI (Python 3.11+), Celery, PostgreSQL 15, Redis
 - **Frontend**: React 18, TypeScript, Redux Toolkit, Tailwind CSS
 - **Infrastructure**: Terraform, Docker Compose v2, OVHcloud Public Cloud
-- **Documentation**: Material for MkDocs, GitHub Pages
+- **Tutorials & Guides**: Material for MkDocs, GitHub Pages (for step-by-step guides and tutorials)
 - **Development**: Test-Driven Development (TDD), 100% test coverage
 
 ## 📖 Documentation
@@ -155,7 +155,7 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 
 ## 🏢 About OVHcloud
 
-OVHcloud is a global cloud provider that delivers industry-leading performance and cost-effective solutions to better manage, secure, and scale data.
+OVHcloud is a global cloud provider that delivers industry-leading performance and cost-effective solutions to better manage, secure, and scale data. We are committed to data sovereignty and open-source software (FOSS), ensuring our customers maintain control over their data while benefiting from transparent, community-driven technologies.
 
 ## 🎪 TechLabs Events
 
@@ -170,4 +170,4 @@ This source code powers the automation and content delivery for these exclusive 
 
 ---
 
-For support and questions about the TechLabs platform code, please open an issue. For event inquiries, contact the OVHcloud TechLabs team.
+For support and questions about the TechLabs platform code, please open an issue. For event inquiries, contact your OVHcloud representative.
