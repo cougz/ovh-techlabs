@@ -477,6 +477,35 @@ const WorkshopDetail: React.FC = () => {
   
   // Check if resources need cleanup (active or failed attendees that haven't been deleted)
   const needsCleanup = attendees.some(a => ['active', 'failed'].includes(a.status));
+  
+  // Dynamic status logic based on actual attendee states
+  const deployingAttendees = attendees.filter(a => a.status === 'deploying').length;
+  const allAttendeesDeployed = attendees.length > 0 && attendees.every(a => a.status === 'active');
+  const noAttendeesDeployed = attendees.length > 0 && attendees.every(a => a.status === 'planning');
+  const partiallyDeployed = attendees.length > 0 && !allAttendeesDeployed && !noAttendeesDeployed && deployingAttendees === 0;
+  
+  // Calculate effective status message based on workshop status and attendee states
+  const getEffectiveStatusMessage = () => {
+    // If workshop status is not planning, use the regular status logic
+    if (workshop.status !== 'planning') {
+      if (workshop.status === 'deploying' || deployingAttendees > 0) return 'Deployment in progress';
+      if (workshop.status === 'active') return 'Workshop running';
+      if (workshop.status === 'completed' && needsCleanup) return 'Workshop completed - resources active';
+      if (workshop.status === 'completed' && !needsCleanup) return 'Workshop completed - resources cleaned up';
+      if (workshop.status === 'failed') return 'Deployment failed';
+      if (workshop.status === 'deleting') return 'Cleanup in progress';
+    }
+    
+    // Special logic for planning status - check actual attendee deployment states
+    if (workshop.status === 'planning') {
+      if (deployingAttendees > 0) return 'Deployment in progress';
+      if (allAttendeesDeployed) return 'All attendees deployed';
+      if (partiallyDeployed) return 'Partially deployed';
+      if (noAttendeesDeployed) return 'Ready to deploy';
+    }
+    
+    return 'Ready to deploy'; // fallback
+  };
 
   return (
     <ErrorBoundary>
@@ -585,13 +614,7 @@ const WorkshopDetail: React.FC = () => {
                 <div>
                   <h3 className="text-lg font-medium text-gray-900">Status</h3>
                   <p className="text-sm text-gray-600">
-                    {workshop.status === 'planning' && 'Ready to deploy'}
-                    {workshop.status === 'deploying' && 'Deployment in progress'}
-                    {workshop.status === 'active' && 'Workshop running'}
-                    {workshop.status === 'completed' && needsCleanup && 'Workshop completed - resources active'}
-                    {workshop.status === 'completed' && !needsCleanup && 'Workshop completed - resources cleaned up'}
-                    {workshop.status === 'failed' && 'Deployment failed'}
-                    {workshop.status === 'deleting' && 'Cleanup in progress'}
+                    {getEffectiveStatusMessage()}
                   </p>
                 </div>
               </div>
