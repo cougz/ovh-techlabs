@@ -143,9 +143,21 @@ def deploy_attendee_resources(self, attendee_id: str):
             "Creating OVH resources"
         )
         
-        success, apply_output = terraform_service.apply(workspace_name)
+        # Use apply_with_recovery to handle stale state errors automatically
+        success, apply_output, recovered = terraform_service.apply_with_recovery(workspace_name, terraform_config)
         if not success:
             raise Exception(f"Terraform apply failed: {apply_output}")
+        
+        # If we recovered from stale state, log it for monitoring
+        if recovered:
+            logger.info(f"Successfully recovered from stale state for attendee {attendee_id}")
+            broadcast_deployment_log(
+                str(attendee.workshop_id),
+                str(attendee.id),
+                "recovery",
+                "completed",
+                "Successfully recovered from stale terraform state and deployed resources"
+            )
         
         broadcast_deployment_log(
             str(attendee.workshop_id),

@@ -8,7 +8,8 @@ import {
   CheckCircleIcon,
   ExclamationCircleIcon,
   ClockIcon,
-  PlusIcon
+  PlusIcon,
+  XMarkIcon
 } from '@heroicons/react/24/outline';
 
 import { workshopApi } from '../services/api';
@@ -74,7 +75,7 @@ const Dashboard: React.FC = () => {
       case 'deploying':
         return <ClockIcon className="h-5 w-5 text-warning-500" />;
       case 'failed':
-        return <ExclamationCircleIcon className="h-5 w-5 text-danger-500" />;
+        return <XMarkIcon className="h-5 w-5 text-danger-500" />;
       default:
         return <ClockIcon className="h-5 w-5 text-gray-500" />;
     }

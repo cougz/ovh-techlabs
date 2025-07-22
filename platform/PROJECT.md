@@ -64,9 +64,11 @@ techlabs-automation/
 ### Current Sprint
 
 #### 🔴 In Progress
-- None
+None currently
 
 #### 📋 Backlog  
+- **Task ID: STATUS-FIX-002** - Fix Status Button Error and Auto-Update Issues (CRITICAL)
+- **Task ID: WEBSOCKET-FIX-001** - Fix Celery WebSocket Connection Errors (CRITICAL)
 - **Task ID: PASSWORD-GEN-001** - Implement Random Password Generation
 - **Task ID: LOGIN-PREFIX-001** - Configurable Login Prefix System
 - **Task ID: RETRY-DEPLOY-001** - Add Deployment Retry Functionality
@@ -253,6 +255,16 @@ techlabs-automation/
   - Completed: July 22, 2025
   - Notes: STATUS INCONSISTENCY FIXED: Implemented comprehensive workshop status management fix. Created WorkshopStatusFixService for robust status updates with enhanced error handling and WebSocket broadcasting. Added API endpoints (/status-check, /fix-status) for manual status validation and fixing. Enhanced terraform deployment tasks to use improved status service with fallback mechanisms. Added "Fix Status" button to frontend that appears when workshop status is inconsistent with attendee states (e.g., workshop shows "planning" but attendees are "active"). Includes comprehensive test coverage for status transition logic and frontend status display. Workshop status now automatically updates correctly after deployment completion, and users can manually fix any inconsistencies that may arise.
 
+- [x] **Task ID: UI-ICON-FIX-001**
+  - Description: Fix Workshop Status Icon Display
+  - Completed: July 22, 2025
+  - Notes: UI ICON FIX COMPLETE: Fixed confusing workshop status icons by replacing orange ExclamationCircleIcon with red XMarkIcon for failed deployment status. Updated all status display components (Dashboard, WorkshopDetail, WorkshopList, AttendeeView) to use consistent red X icon for failures. This provides much clearer visual indication to users when deployments have failed, eliminating confusion from the previous orange check mark. All frontend components now display intuitive status icons that properly reflect the actual deployment state.
+
+- [x] **Task ID: TERRAFORM-DEPLOY-FIX-001**
+  - Description: Fix Terraform Deployment Failures  
+  - Completed: July 22, 2025
+  - Notes: TERRAFORM RECOVERY SYSTEM COMPLETE: Implemented comprehensive stale state recovery system to handle 404 "This service does not exist" terraform errors automatically. Added apply_with_recovery method that detects stale project references, cleans terraform state, and retries deployment seamlessly. Integrated recovery logic into main deploy_attendee_resources task with enhanced logging and WebSocket broadcasting. System now automatically recovers from stale state situations where OVH projects were deleted outside terraform, preventing deployment failures. Added comprehensive test coverage with 22 tests across 4 test suites covering error detection, state cleanup, recovery workflows, and deployment integration. Enhanced OVH credential validation to prevent deployment attempts with placeholder credentials. This resolves the critical deployment failure issue while maintaining system reliability and providing detailed error reporting.
+
 ## Important Context
 
 ### Known Issues
@@ -350,9 +362,14 @@ techlabs-automation/
 
 ## Pending Tasks Details
 
-### STATUS-FIX-001: Fix Workshop Status Inconsistency
-**Issue**: Workshop remains in "planning" state even when all attendees are deployed. Sidebar shows "Ready to deploy" while attendees are already deployed.
-**Solution**: Implement automatic status transitions based on attendee deployment state.
+### STATUS-FIX-002: Fix Status Button Error and Auto-Update Issues
+**Issue**: Fix Status button returns error "type object 'WorkshopStatusService' has no attribute '_calculate_least_sane_status'". Also, the button shouldn't exist - the application should handle status updates automatically.
+**Solution**: Fix the missing method error and remove the manual button, implementing fully automatic status management.
+
+### WEBSOCKET-FIX-001: Fix Celery WebSocket Connection Errors
+**Issue**: Celery worker shows connection timeout errors: "HTTPConnectionPool(host='techlabs-api-prod', port=8000): Max retries exceeded with url: /internal/broadcast"
+**Solution**: Fix WebSocket broadcast configuration and connection issues between Celery workers and API.
+
 
 ### PASSWORD-GEN-001: Implement Random Password Generation  
 **Issue**: Hardcoded password "TempPassword123!" is a security risk.

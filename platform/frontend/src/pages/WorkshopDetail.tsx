@@ -15,7 +15,8 @@ import {
   EllipsisVerticalIcon,
   ArrowLeftIcon,
   PencilIcon,
-  DocumentArrowDownIcon
+  DocumentArrowDownIcon,
+  XMarkIcon
 } from '@heroicons/react/24/outline';
 
 import { workshopApi, attendeeApi, deploymentApi } from '../services/api';
@@ -234,7 +235,7 @@ const WorkshopDetail: React.FC = () => {
       case 'deploying':
         return <ClockIcon className="h-5 w-5 text-warning-500 animate-spin" />;
       case 'failed':
-        return <ExclamationCircleIcon className="h-5 w-5 text-danger-500" />;
+        return <XMarkIcon className="h-5 w-5 text-danger-500" />;
       case 'deleting':
         return <ClockIcon className="h-5 w-5 text-danger-500 animate-spin" />;
       default:
