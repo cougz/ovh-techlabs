@@ -16,7 +16,7 @@ def send_websocket_update(workshop_id: str, message: dict):
     try:
         # In production, we'd use a proper message queue (Redis pub/sub)
         # For now, we'll use a simple HTTP callback
-        url = f"http://techlabs-api-prod:8000/internal/broadcast"
+        url = f"http://ovh-techlabs-api:8000/internal/broadcast"
         payload = {
             "workshop_id": workshop_id,
             "message": message
