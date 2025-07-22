@@ -6,6 +6,9 @@ import shutil
 from typing import Dict, Optional, List, Tuple
 from pathlib import Path
 import uuid
+import secrets
+import string
+import hashlib
 
 from core.config import settings
 from core.logging import get_logger
@@ -36,6 +39,43 @@ class TerraformService:
             logger.error(f"Workspace directory not writable: {self.workspace_dir}")
         else:
             logger.info(f"Workspace directory is writable")
+    
+    def _generate_secure_password(self, username: str) -> str:
+        """Generate a secure, deterministic password for a user."""
+        # Use username as seed for deterministic but unique passwords
+        seed_data = f"{username}-ovh-techlabs-password"
+        seed_hash = hashlib.sha256(seed_data.encode()).hexdigest()
+        
+        # Use first 32 chars of hash as seed for random number generator
+        # This ensures same username always gets same password
+        random_seed = int(seed_hash[:8], 16)
+        
+        # Create deterministic random generator
+        import random
+        rng = random.Random(random_seed)
+        
+        # Define character sets for secure password
+        lowercase = string.ascii_lowercase
+        uppercase = string.ascii_uppercase  
+        digits = string.digits
+        special_chars = "!@#$%^&*()_+-="
+        
+        # Ensure password has at least one from each category
+        password_chars = []
+        password_chars.append(rng.choice(uppercase))
+        password_chars.append(rng.choice(lowercase))
+        password_chars.append(rng.choice(digits))
+        password_chars.append(rng.choice(special_chars))
+        
+        # Fill rest with random characters from all sets
+        all_chars = lowercase + uppercase + digits + special_chars
+        for _ in range(12):  # Total length: 16 chars
+            password_chars.append(rng.choice(all_chars))
+        
+        # Shuffle the password characters
+        rng.shuffle(password_chars)
+        
+        return ''.join(password_chars)
     
     def _get_workspace_path(self, workspace_name: str) -> Path:
         """Get the path for a specific workspace."""
@@ -396,7 +436,7 @@ resource "ovh_me_identity_user" "workshop_user" {
   email       = var.user_email
   group       = "UNPRIVILEGED"
   login       = var.username
-  password    = "TempPassword123!" # Will be changed later
+  password    = "{password}"
 }
 
 # Create IAM policy
@@ -430,7 +470,12 @@ output "password" {
   sensitive = true
 }
 '''
-        return template.strip()
+        # Generate secure password for this user
+        username = config.get('username', '')
+        password = self._generate_secure_password(username)
+        
+        # Replace password placeholder with generated password
+        return template.replace('{password}', password).strip()
     
     def _generate_tfvars(self, config: Dict) -> str:
         """Generate terraform.tfvars content from configuration."""
