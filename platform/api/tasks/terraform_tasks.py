@@ -212,8 +212,8 @@ def deploy_attendee_resources(self, attendee_id: str):
             }
         )
         
-        # Update workshop status based on attendee statuses
-        update_workshop_status_based_on_attendees(db, attendee.workshop_id)
+        # Note: Workshop status will be updated by sequential deployment function
+        # Individual deployments should not update workshop status to prevent race conditions
         
         logger.info(f"Successfully deployed resources for attendee {attendee_id}")
         
@@ -249,8 +249,8 @@ def deploy_attendee_resources(self, attendee_id: str):
                 error=str(e)
             )
             
-            # Update workshop status based on attendee statuses
-            update_workshop_status_based_on_attendees(db, attendee.workshop_id)
+            # Note: Workshop status will be updated by sequential deployment function
+            # Individual deployments should not update workshop status to prevent race conditions
         
         # Update deployment log
         if deployment_log:

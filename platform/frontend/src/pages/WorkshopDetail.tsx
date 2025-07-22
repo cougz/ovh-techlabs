@@ -470,6 +470,10 @@ const WorkshopDetail: React.FC = () => {
 
   const activeAttendees = attendees.filter(a => a.status === 'active').length;
   const failedAttendees = attendees.filter(a => a.status === 'failed').length;
+  
+  // Check if all attendees are actually deployed (handles edge case where workshop status is stale)
+  const allAttendeesDeployed = attendees.length > 0 && attendees.every(a => a.status === 'active');
+  const hasDeployedAttendees = activeAttendees > 0;
 
   return (
     <ErrorBoundary>
@@ -510,7 +514,7 @@ const WorkshopDetail: React.FC = () => {
                 </button>
               )}
               
-              {(workshop.status === 'active' || workshop.status === 'completed') && (
+              {(workshop.status === 'active' || workshop.status === 'completed' || hasDeployedAttendees) && (
                 <button
                   onClick={handleCleanupWorkshop}
                   disabled={isCleanupInProgress}
