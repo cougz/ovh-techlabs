@@ -2,6 +2,7 @@ from celery import current_task
 from sqlalchemy.orm import Session
 from datetime import datetime
 from uuid import UUID
+import time
 
 from core.celery_app import celery_app
 from core.database import SessionLocal
@@ -503,3 +504,141 @@ def deploy_workshop_attendees_sequential(self, workshop_id: str):
         
     finally:
         db.close()
+
+
+def create_retry_deployment_log(attendee_id: str, attempt_number: int, previous_error: str = None):
+    """Create a deployment log entry for retry attempts"""
+    db = SessionLocal()
+    try:
+        deployment_log = DeploymentLog(
+            attendee_id=UUID(attendee_id),
+            action="deploy_retry",
+            status="started",
+            notes=f"Retry attempt attempt_number={attempt_number}" + (f", previous_error: {previous_error}" if previous_error else "")
+        )
+        db.add(deployment_log)
+        db.commit()
+        return deployment_log.id
+    except Exception as e:
+        logger.error(f"Failed to create retry deployment log: {str(e)}")
+        db.rollback()
+        return None
+    finally:
+        db.close()
+
+
+def is_transient_error(error_message: str) -> bool:
+    """Check if an error is transient and should be retried"""
+    transient_patterns = [
+        "quota exceeded",
+        "rate limit",
+        "timeout",
+        "temporarily unavailable",
+        "server error",
+        "connection reset",
+        "network error"
+    ]
+    
+    error_lower = error_message.lower()
+    return any(pattern in error_lower for pattern in transient_patterns)
+
+
+def deploy_attendee_resources_with_retry(attendee_id: str, max_retries: int = 3):
+    """Deploy attendee resources with automatic retry and exponential backoff"""
+    db = SessionLocal()
+    attendee = None
+    
+    for attempt in range(max_retries):
+        try:
+            # Get attendee
+            attendee = db.query(Attendee).filter(Attendee.id == UUID(attendee_id)).first()
+            if not attendee:
+                return {"success": False, "error": "Attendee not found"}
+            
+            # For retry attempts, create retry log
+            if attempt > 0:
+                create_retry_deployment_log(attendee_id, attempt + 1)
+                
+                # Exponential backoff: wait 2^attempt seconds
+                backoff_time = 2 ** attempt
+                logger.info(f"Retry attempt {attempt + 1} for attendee {attendee_id}, waiting {backoff_time}s")
+                time.sleep(backoff_time)
+            
+            # Create terraform workspace
+            workspace_name = f"attendee-{attendee_id}"
+            terraform_config = {
+                "project_description": f"TechLabs environment for {attendee.username}",
+                "username": attendee.username,
+                "email": attendee.email
+            }
+            
+            # Try terraform operations
+            if not terraform_service.create_workspace(workspace_name, terraform_config):
+                error_msg = "Failed to create terraform workspace"
+                if is_transient_error(error_msg) and attempt < max_retries - 1:
+                    logger.warning(f"Transient error on attempt {attempt + 1}: {error_msg}")
+                    continue
+                else:
+                    raise Exception(error_msg)
+            
+            # Plan deployment
+            success, plan_output = terraform_service.plan(workspace_name)
+            if not success:
+                error_msg = f"Terraform plan failed: {plan_output}"
+                if is_transient_error(plan_output) and attempt < max_retries - 1:
+                    logger.warning(f"Transient error on attempt {attempt + 1}: {error_msg}")
+                    continue
+                else:
+                    raise Exception(error_msg)
+            
+            # Apply deployment
+            success, apply_output, recovered = terraform_service.apply_with_recovery(workspace_name, terraform_config)
+            if not success:
+                error_msg = f"Terraform apply failed: {apply_output}"
+                if is_transient_error(apply_output) and attempt < max_retries - 1:
+                    logger.warning(f"Transient error on attempt {attempt + 1}: {error_msg}")
+                    continue
+                else:
+                    raise Exception(error_msg)
+            
+            # Success! Get outputs and update attendee
+            outputs = terraform_service.get_outputs(workspace_name)
+            
+            if "project_id" in outputs:
+                attendee.ovh_project_id = outputs["project_id"]["value"]
+            if "user_urn" in outputs:
+                attendee.ovh_user_urn = outputs["user_urn"]["value"]
+            
+            attendee.status = "active"
+            db.commit()
+            
+            logger.info(f"Successfully deployed resources for attendee {attendee_id} on attempt {attempt + 1}")
+            
+            return {
+                "success": True,
+                "attendee_id": attendee_id,
+                "attempt": attempt + 1,
+                "project_id": outputs.get("project_id", {}).get("value"),
+                "user_urn": outputs.get("user_urn", {}).get("value")
+            }
+            
+        except Exception as e:
+            error_msg = str(e)
+            logger.error(f"Deployment attempt {attempt + 1} failed for attendee {attendee_id}: {error_msg}")
+            
+            # If this is the last attempt or not a transient error, fail permanently
+            if attempt == max_retries - 1 or not is_transient_error(error_msg):
+                if attendee:
+                    attendee.status = "failed"
+                    db.commit()
+                
+                return {
+                    "success": False,
+                    "error": f"Max retry attempts exceeded. Last error: {error_msg}",
+                    "attendee_id": attendee_id,
+                    "attempts": attempt + 1
+                }
+    
+    # This is a fallback return (should not reach here)
+    db.close()
+    return {"success": False, "error": "Unexpected code path"}

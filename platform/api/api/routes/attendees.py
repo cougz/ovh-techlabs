@@ -227,6 +227,41 @@ async def deploy_attendee(
         "attendee_id": attendee_id
     }
 
+@router.post("/{attendee_id}/retry")
+async def retry_attendee_deployment(
+    attendee_id: UUID,
+    db: Session = Depends(get_db),
+    current_user: str = Depends(get_current_user)
+):
+    """Retry deployment for a failed attendee."""
+    attendee = db.query(Attendee).filter(Attendee.id == attendee_id).first()
+    
+    if not attendee:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Attendee not found"
+        )
+    
+    if attendee.status != 'failed':
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Can only retry failed deployments"
+        )
+    
+    # Reset status and queue deployment retry
+    attendee.status = 'deploying'
+    db.commit()
+    
+    # Import here to avoid circular imports
+    from tasks.terraform_tasks import deploy_attendee_resources
+    task = deploy_attendee_resources.delay(str(attendee_id))
+    
+    return {
+        "message": "Attendee deployment retry started",
+        "task_id": task.id,
+        "attendee_id": attendee_id
+    }
+
 @router.post("/{attendee_id}/destroy")
 async def destroy_attendee_resources(
     attendee_id: UUID,
