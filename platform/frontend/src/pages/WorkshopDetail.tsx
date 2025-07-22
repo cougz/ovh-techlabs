@@ -14,7 +14,8 @@ import {
   ArrowLeftIcon,
   PencilIcon,
   DocumentArrowDownIcon,
-  XMarkIcon
+  XMarkIcon,
+  ExclamationTriangleIcon
 } from '@heroicons/react/24/outline';
 
 import { workshopApi, attendeeApi, deploymentApi } from '../services/api';
@@ -538,7 +539,7 @@ const WorkshopDetail: React.FC = () => {
         </div>
 
         {/* Workshop Info */}
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
+        <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-4 gap-6 mb-8">
           <div className="card">
             <div className="card-body">
               <div className="flex items-center">
@@ -593,6 +594,26 @@ const WorkshopDetail: React.FC = () => {
               </div>
             </div>
           </div>
+
+          {workshop.deletion_scheduled_at && (
+            <div className="card">
+              <div className="card-body">
+                <div className="flex items-center">
+                  <ExclamationTriangleIcon className="h-8 w-8 text-amber-500 mr-3" />
+                  <div>
+                    <h3 className="text-lg font-medium text-gray-900">Cleanup Schedule</h3>
+                    <p className="text-sm text-gray-600">
+                      Environment deletion
+                      <br />
+                      <span className="text-xs font-medium text-amber-600">
+                        {formatDeletionDate(workshop.deletion_scheduled_at)}
+                      </span>
+                    </p>
+                  </div>
+                </div>
+              </div>
+            </div>
+          )}
         </div>
 
         {/* Attendees Section */}
