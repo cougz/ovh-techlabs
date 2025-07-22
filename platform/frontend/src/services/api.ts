@@ -157,6 +157,18 @@ export const deploymentApi = {
   },
 };
 
+// Settings API
+export const settingsApi = {
+  getLoginPrefixConfig: async (): Promise<{login_prefix: string; export_format: string}> => {
+    const response = await apiClient.get('/api/settings/login-prefix');
+    return response.data;
+  },
+  
+  setLoginPrefixConfig: async (config: {login_prefix: string; export_format: string}): Promise<void> => {
+    await apiClient.post('/api/settings/login-prefix', config);
+  },
+};
+
 // Health API
 export const healthApi = {
   healthCheck: async (): Promise<{ status: string; timestamp: string }> => {
