@@ -67,10 +67,7 @@ techlabs-automation/
 None currently
 
 #### 📋 Backlog  
-- **Task ID: STATUS-FIX-002** - Fix Status Button Error and Auto-Update Issues (CRITICAL)
-- **Task ID: WEBSOCKET-FIX-001** - Fix Celery WebSocket Connection Errors (CRITICAL)
-- **Task ID: PASSWORD-GEN-001** - Implement Random Password Generation
-- **Task ID: LOGIN-PREFIX-001** - Configurable Login Prefix System
+- **Task ID: LOGIN-PREFIX-001** - Configurable Login Prefix System (IN PROGRESS - test framework created)
 - **Task ID: RETRY-DEPLOY-001** - Add Deployment Retry Functionality
 - **Task ID: CLEANUP-NOTIFY-001** - Environment Cleanup Notification with TDD
 
@@ -264,6 +261,21 @@ None currently
   - Description: Fix Terraform Deployment Failures  
   - Completed: July 22, 2025
   - Notes: TERRAFORM RECOVERY SYSTEM COMPLETE: Implemented comprehensive stale state recovery system to handle 404 "This service does not exist" terraform errors automatically. Added apply_with_recovery method that detects stale project references, cleans terraform state, and retries deployment seamlessly. Integrated recovery logic into main deploy_attendee_resources task with enhanced logging and WebSocket broadcasting. System now automatically recovers from stale state situations where OVH projects were deleted outside terraform, preventing deployment failures. Added comprehensive test coverage with 22 tests across 4 test suites covering error detection, state cleanup, recovery workflows, and deployment integration. Enhanced OVH credential validation to prevent deployment attempts with placeholder credentials. This resolves the critical deployment failure issue while maintaining system reliability and providing detailed error reporting.
+
+- [x] **Task ID: STATUS-FIX-002**
+  - Description: Fix Status Button Error and Auto-Update Issues
+  - Completed: July 22, 2025
+  - Notes: STATUS BUTTON FIX COMPLETE: Fixed missing method bug in WorkshopStatusFixService by changing incorrect method call from `_calculate_least_sane_status()` to `calculate_workshop_status_from_attendees()` on line 104. Implemented comprehensive test suite with proper UUID validation ensuring all tests pass. Removed manual "Fix Status" button from frontend as per requirements, along with related handleFixStatus function and fixWorkshopStatus API endpoint. Status management is now fully automatic through existing background processes - workshop status updates happen automatically when attendee statuses change through the "least sane" status aggregation logic. System now self-heals status inconsistencies without manual intervention.
+
+- [x] **Task ID: WEBSOCKET-FIX-001**
+  - Description: Fix Celery WebSocket Connection Errors
+  - Completed: July 22, 2025
+  - Notes: WEBSOCKET CONNECTION ERRORS RESOLVED: Fixed NameResolutionError caused by incorrect hostname in websocket_updates.py line 19. Changed 'techlabs-api-prod' to 'ovh-techlabs-api' (correct container name). Eliminated HTTPConnectionPool timeout errors and "Failed to resolve 'techlabs-api-prod'" errors from Celery worker logs. Added comprehensive test suite with 3 tests validating hostname fix, successful broadcast functionality, and elimination of connection errors. Restarted Celery workers to apply fix - WebSocket broadcast functionality now working correctly for real-time status updates.
+
+- [x] **Task ID: PASSWORD-GEN-001**
+  - Description: Implement Random Password Generation
+  - Completed: July 22, 2025
+  - Notes: RANDOM PASSWORD GENERATION COMPLETE: Replaced hardcoded 'TempPassword123!' security risk with secure password generation system. Added _generate_secure_password() method using SHA256-seeded deterministic generation ensuring each username gets unique 16-character password with mixed case letters, digits, and special characters. Passwords are deterministic per username for consistency across deployments while maintaining uniqueness across users. Updated Terraform template to use generated passwords instead of hardcoded values. Added comprehensive test suite with 3 tests validating password uniqueness, security requirements, and deterministic behavior. Major security improvement eliminating password reuse vulnerability across all workshop attendees.
 
 ## Important Context
 
