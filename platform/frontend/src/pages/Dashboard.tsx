@@ -6,13 +6,13 @@ import {
   UserGroupIcon, 
   CloudIcon, 
   CheckCircleIcon,
-  ClockIcon,
-  PlusIcon,
-  XMarkIcon
+  PlusIcon
 } from '@heroicons/react/24/outline';
 
 import { workshopApi } from '../services/api';
 import { WorkshopSummary } from '../types';
+import StatusIndicator from '../components/StatusIndicator';
+import { getEffectiveStatus, sortByStatusPriority } from '../utils/statusUtils';
 
 const Dashboard: React.FC = () => {
   const { data: workshops = [], isLoading } = useQuery<WorkshopSummary[]>(
@@ -65,57 +65,6 @@ const Dashboard: React.FC = () => {
     },
   ];
 
-  const getStatusIcon = (status: string) => {
-    switch (status) {
-      case 'active':
-        return <CheckCircleIcon className="h-5 w-5 text-success-500" />;
-      case 'completed':
-        return <CheckCircleIcon className="h-5 w-5 text-primary-500" />;
-      case 'deploying':
-        return <ClockIcon className="h-5 w-5 text-warning-500" />;
-      case 'failed':
-        return <XMarkIcon className="h-5 w-5 text-danger-500" />;
-      default:
-        return <ClockIcon className="h-5 w-5 text-gray-500" />;
-    }
-  };
-
-  const getStatusClass = (status: string) => {
-    switch (status) {
-      case 'active':
-        return 'status-active';
-      case 'completed':
-        return 'status-completed';
-      case 'deploying':
-        return 'status-deploying';
-      case 'failed':
-        return 'status-failed';
-      default:
-        return 'status-planning';
-    }
-  };
-
-  // Calculate effective status considering attendee deployment states (synchronized with WorkshopList logic)
-  const getEffectiveStatus = (workshop: WorkshopSummary): string => {
-    // If workshop status is not planning, use the regular status logic
-    if (workshop.status !== 'planning') {
-      return workshop.status;
-    }
-    
-    // Special logic for planning status - check actual attendee deployment states
-    if (workshop.status === 'planning') {
-      // Important: Only consider a workshop as deployed if it has attendees
-      const allAttendeesDeployed = workshop.attendee_count > 0 && workshop.active_attendees === workshop.attendee_count;
-      const partiallyDeployed = workshop.active_attendees > 0 && workshop.active_attendees < workshop.attendee_count;
-      const noAttendeesDeployed = workshop.active_attendees === 0;
-      
-      if (allAttendeesDeployed) return 'active';
-      if (partiallyDeployed) return 'deploying';
-      if (noAttendeesDeployed) return 'planning';
-    }
-    
-    return 'planning'; // fallback
-  };
 
   if (isLoading) {
     return (
@@ -230,36 +179,49 @@ const Dashboard: React.FC = () => {
           ) : (
             <div className="overflow-hidden">
               <ul className="divide-y divide-gray-200 dark:divide-gray-600">
-                {workshops.slice(0, 5).map((workshop) => (
-                  <li key={workshop.id} className="py-4">
-                    <div className="flex items-center justify-between">
-                      <div className="flex items-center">
-                        <div className="flex-shrink-0">
-                          {getStatusIcon(getEffectiveStatus(workshop))}
+                {sortByStatusPriority(workshops.slice(0, 5)).map((workshop) => {
+                  const effectiveStatus = getEffectiveStatus(workshop);
+                  
+                  return (
+                    <li key={workshop.id} className="py-4">
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center">
+                          <div className="flex-shrink-0">
+                            <StatusIndicator 
+                              status={effectiveStatus} 
+                              variant="icon" 
+                              size="md"
+                            />
+                          </div>
+                          <div className="ml-4">
+                            <div className="flex items-center">
+                              <Link
+                                to={`/workshops/${workshop.id}`}
+                                className="text-sm font-medium text-gray-900 dark:text-gray-100 hover:text-primary-600"
+                              >
+                                {workshop.name}
+                              </Link>
+                              <div className="ml-2">
+                                <StatusIndicator 
+                                  status={effectiveStatus} 
+                                  variant="badge" 
+                                  size="sm"
+                                  showIcon={false}
+                                />
+                              </div>
+                            </div>
+                            <div className="text-sm text-gray-500 dark:text-gray-400">
+                              {workshop.attendee_count} attendees • {workshop.active_attendees} active
+                            </div>
+                          </div>
                         </div>
-                        <div className="ml-4">
-                          <div className="flex items-center">
-                            <Link
-                              to={`/workshops/${workshop.id}`}
-                              className="text-sm font-medium text-gray-900 dark:text-gray-100 hover:text-primary-600"
-                            >
-                              {workshop.name}
-                            </Link>
-                            <span className={`ml-2 ${getStatusClass(getEffectiveStatus(workshop))}`}>
-                              {getEffectiveStatus(workshop)}
-                            </span>
-                          </div>
-                          <div className="text-sm text-gray-500 dark:text-gray-400">
-                            {workshop.attendee_count} attendees • {workshop.active_attendees} active
-                          </div>
+                        <div className="text-sm text-gray-500 dark:text-gray-400">
+                          {new Date(workshop.start_date).toLocaleDateString()}
                         </div>
                       </div>
-                      <div className="text-sm text-gray-500 dark:text-gray-400">
-                        {new Date(workshop.start_date).toLocaleDateString()}
-                      </div>
-                    </div>
-                  </li>
-                ))}
+                    </li>
+                  );
+                })}
               </ul>
             </div>
           )}

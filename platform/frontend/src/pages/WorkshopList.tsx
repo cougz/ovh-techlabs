@@ -8,17 +8,22 @@ import {
   EllipsisVerticalIcon,
   CalendarIcon,
   UserGroupIcon,
-  CheckCircleIcon,
-  ClockIcon,
   PlayIcon,
   StopIcon,
-  TrashIcon,
-  XMarkIcon
+  TrashIcon
 } from '@heroicons/react/24/outline';
 
 import { workshopApi } from '../services/api';
 import { WorkshopSummary, WorkshopStatus } from '../types';
 import DropdownMenu from '../components/DropdownMenu';
+import StatusIndicator from '../components/StatusIndicator';
+import ProgressBar from '../components/ProgressBar';
+import { 
+  getEffectiveStatus, 
+  getWorkshopProgress, 
+  needsCleanup,
+  sortByStatusPriority 
+} from '../utils/statusUtils';
 
 const WorkshopList: React.FC = () => {
   const [searchTerm, setSearchTerm] = useState('');
@@ -41,61 +46,6 @@ const WorkshopList: React.FC = () => {
     (workshop.description && workshop.description.toLowerCase().includes(searchTerm.toLowerCase()))
   );
 
-  const getStatusIcon = (status: WorkshopStatus) => {
-    switch (status) {
-      case 'active':
-        return <CheckCircleIcon className="h-5 w-5 text-success-500" />;
-      case 'completed':
-        return <CheckCircleIcon className="h-5 w-5 text-primary-500" />;
-      case 'deploying':
-        return <ClockIcon className="h-5 w-5 text-warning-500 animate-spin" />;
-      case 'failed':
-        return <XMarkIcon className="h-5 w-5 text-danger-500" />;
-      case 'deleting':
-        return <ClockIcon className="h-5 w-5 text-danger-500 animate-spin" />;
-      default:
-        return <ClockIcon className="h-5 w-5 text-gray-500" />;
-    }
-  };
-
-  const getStatusClass = (status: WorkshopStatus) => {
-    switch (status) {
-      case 'active':
-        return 'status-active';
-      case 'completed':
-        return 'status-completed';
-      case 'deploying':
-        return 'status-deploying';
-      case 'failed':
-        return 'status-failed';
-      case 'deleting':
-        return 'status-deleting';
-      default:
-        return 'status-planning';
-    }
-  };
-
-  // Calculate effective status considering attendee deployment states (same logic as WorkshopDetail)
-  const getEffectiveStatus = (workshop: WorkshopSummary): WorkshopStatus => {
-    // If workshop status is not planning, use the regular status
-    if (workshop.status !== 'planning') {
-      return workshop.status;
-    }
-    
-    // Special logic for planning status - check actual attendee deployment states
-    if (workshop.status === 'planning') {
-      // Important: Only consider a workshop as deployed if it has attendees
-      const allAttendeesDeployed = workshop.attendee_count > 0 && workshop.active_attendees === workshop.attendee_count;
-      const partiallyDeployed = workshop.active_attendees > 0 && workshop.active_attendees < workshop.attendee_count;
-      const noAttendeesDeployed = workshop.active_attendees === 0;
-      
-      if (allAttendeesDeployed) return 'active';
-      if (partiallyDeployed) return 'deploying'; // Show as deploying for partially deployed
-      if (noAttendeesDeployed) return 'planning';
-    }
-    
-    return 'planning'; // fallback
-  };
 
   const formatDate = (dateString: string) => {
     return new Date(dateString).toLocaleDateString('en-US', {
@@ -280,48 +230,72 @@ const WorkshopList: React.FC = () => {
         </div>
       ) : (
         <div className="space-y-4">
-          {filteredWorkshops.map((workshop) => (
-            <div key={workshop.id} className="card hover:shadow-md transition-shadow duration-200">
-              <div className="card-body">
-                <div className="flex items-center justify-between">
-                  <div className="flex-1 min-w-0">
-                    <div className="flex items-center space-x-3">
-                      {getStatusIcon(getEffectiveStatus(workshop))}
-                      <div className="flex-1 min-w-0">
-                        <div className="flex items-center space-x-2">
-                          <Link
-                            to={`/workshops/${workshop.id}`}
-                            className="text-lg font-medium text-gray-900 hover:text-primary-600 truncate"
-                          >
-                            {workshop.name}
-                          </Link>
-                          <span className={`${getStatusClass(getEffectiveStatus(workshop))} whitespace-nowrap`}>
-                            {getEffectiveStatus(workshop)}
+          {sortByStatusPriority(filteredWorkshops).map((workshop) => {
+            const effectiveStatus = getEffectiveStatus(workshop);
+            const progress = getWorkshopProgress(workshop);
+            
+            return (
+              <div key={workshop.id} className="card hover:shadow-md transition-shadow duration-200">
+                <div className="card-body">
+                  <div className="flex items-center justify-between">
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-center space-x-3">
+                        <StatusIndicator 
+                          status={effectiveStatus} 
+                          variant="icon" 
+                          size="lg"
+                        />
+                        <div className="flex-1 min-w-0">
+                          <div className="flex items-center space-x-2">
+                            <Link
+                              to={`/workshops/${workshop.id}`}
+                              className="text-lg font-medium text-gray-900 dark:text-gray-100 hover:text-primary-600 dark:hover:text-primary-400 truncate"
+                            >
+                              {workshop.name}
+                            </Link>
+                            <StatusIndicator 
+                              status={effectiveStatus} 
+                              variant="badge" 
+                              size="sm"
+                              showIcon={false}
+                            />
+                          </div>
+                          {workshop.description && (
+                            <p className="text-sm text-gray-500 dark:text-gray-400 mt-1 truncate">
+                              {workshop.description}
+                            </p>
+                          )}
+                        </div>
+                      </div>
+                      
+                      {/* Enhanced progress visualization */}
+                      {progress.totalCount > 0 && effectiveStatus === 'deploying' && (
+                        <div className="mt-3">
+                          <ProgressBar
+                            percentage={progress.percentage}
+                            status={effectiveStatus}
+                            description={progress.description}
+                            size="sm"
+                            animated={true}
+                          />
+                        </div>
+                      )}
+                      
+                      <div className="mt-4 flex items-center space-x-6 text-sm text-gray-500 dark:text-gray-400">
+                        <div className="flex items-center">
+                          <CalendarIcon className="h-4 w-4 mr-1" />
+                          <span>
+                            {formatDate(workshop.start_date)} - {formatDate(workshop.end_date)}
                           </span>
                         </div>
-                        {workshop.description && (
-                          <p className="text-sm text-gray-500 mt-1 truncate">
-                            {workshop.description}
-                          </p>
-                        )}
+                        <div className="flex items-center">
+                          <UserGroupIcon className="h-4 w-4 mr-1" />
+                          <span>
+                            {workshop.active_attendees}/{workshop.attendee_count} attendees
+                          </span>
+                        </div>
                       </div>
                     </div>
-                    
-                    <div className="mt-4 flex items-center space-x-6 text-sm text-gray-500">
-                      <div className="flex items-center">
-                        <CalendarIcon className="h-4 w-4 mr-1" />
-                        <span>
-                          {formatDate(workshop.start_date)} - {formatDate(workshop.end_date)}
-                        </span>
-                      </div>
-                      <div className="flex items-center">
-                        <UserGroupIcon className="h-4 w-4 mr-1" />
-                        <span>
-                          {workshop.active_attendees}/{workshop.attendee_count} attendees
-                        </span>
-                      </div>
-                    </div>
-                  </div>
                   
                   <div className="flex items-center space-x-2">
                     <button
@@ -338,19 +312,19 @@ const WorkshopList: React.FC = () => {
                       trigger={{ current: triggerRefs.current[workshop.id] }}
                     >
                       <div className="py-1">
-                        {getEffectiveStatus(workshop) === 'planning' && (
+                        {effectiveStatus === 'planning' && (
                           <button
                             onClick={() => handleAction('deploy', workshop.id)}
-                            className="flex items-center w-full px-4 py-2 text-sm text-gray-700 hover:bg-gray-50"
+                            className="flex items-center w-full px-4 py-2 text-sm text-gray-700 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-gray-700"
                           >
                             <PlayIcon className="h-4 w-4 mr-2" />
                             Deploy Workshop
                           </button>
                         )}
-                        {(getEffectiveStatus(workshop) === 'active' || getEffectiveStatus(workshop) === 'completed') && workshop.active_attendees > 0 && (
+                        {needsCleanup(workshop) && (
                           <button
                             onClick={() => handleAction('cleanup', workshop.id)}
-                            className="flex items-center w-full px-4 py-2 text-sm text-gray-700 hover:bg-gray-50"
+                            className="flex items-center w-full px-4 py-2 text-sm text-gray-700 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-gray-700"
                           >
                             <StopIcon className="h-4 w-4 mr-2" />
                             Cleanup Resources
@@ -358,16 +332,16 @@ const WorkshopList: React.FC = () => {
                         )}
                         <Link
                           to={`/workshops/${workshop.id}`}
-                          className="flex items-center w-full px-4 py-2 text-sm text-gray-700 hover:bg-gray-50"
+                          className="flex items-center w-full px-4 py-2 text-sm text-gray-700 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-gray-700"
                           onClick={() => setShowActions(null)}
                         >
                           <UserGroupIcon className="h-4 w-4 mr-2" />
                           Manage Attendees
                         </Link>
-                        {workshop.status !== 'deleting' && (
+                        {effectiveStatus !== 'deleting' && (
                           <button
                             onClick={() => handleAction('delete', workshop.id)}
-                            className="flex items-center w-full px-4 py-2 text-sm text-danger-600 hover:bg-danger-50"
+                            className="flex items-center w-full px-4 py-2 text-sm text-danger-600 dark:text-danger-400 hover:bg-danger-50 dark:hover:bg-danger-900/20"
                           >
                             <TrashIcon className="h-4 w-4 mr-2" />
                             Delete Workshop
@@ -379,7 +353,8 @@ const WorkshopList: React.FC = () => {
                 </div>
               </div>
             </div>
-          ))}
+            );
+          })}
         </div>
       )}
     </div>
