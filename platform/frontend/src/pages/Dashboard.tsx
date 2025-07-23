@@ -95,6 +95,28 @@ const Dashboard: React.FC = () => {
     }
   };
 
+  // Calculate effective status considering attendee deployment states (synchronized with WorkshopList logic)
+  const getEffectiveStatus = (workshop: WorkshopSummary): string => {
+    // If workshop status is not planning, use the regular status logic
+    if (workshop.status !== 'planning') {
+      return workshop.status;
+    }
+    
+    // Special logic for planning status - check actual attendee deployment states
+    if (workshop.status === 'planning') {
+      // Important: Only consider a workshop as deployed if it has attendees
+      const allAttendeesDeployed = workshop.attendee_count > 0 && workshop.active_attendees === workshop.attendee_count;
+      const partiallyDeployed = workshop.active_attendees > 0 && workshop.active_attendees < workshop.attendee_count;
+      const noAttendeesDeployed = workshop.active_attendees === 0;
+      
+      if (allAttendeesDeployed) return 'active';
+      if (partiallyDeployed) return 'deploying';
+      if (noAttendeesDeployed) return 'planning';
+    }
+    
+    return 'planning'; // fallback
+  };
+
   if (isLoading) {
     return (
       <div className="animate-fade-in">
@@ -213,7 +235,7 @@ const Dashboard: React.FC = () => {
                     <div className="flex items-center justify-between">
                       <div className="flex items-center">
                         <div className="flex-shrink-0">
-                          {getStatusIcon(workshop.status)}
+                          {getStatusIcon(getEffectiveStatus(workshop))}
                         </div>
                         <div className="ml-4">
                           <div className="flex items-center">
@@ -223,8 +245,8 @@ const Dashboard: React.FC = () => {
                             >
                               {workshop.name}
                             </Link>
-                            <span className={`ml-2 ${getStatusClass(workshop.status)}`}>
-                              {workshop.status}
+                            <span className={`ml-2 ${getStatusClass(getEffectiveStatus(workshop))}`}>
+                              {getEffectiveStatus(workshop)}
                             </span>
                           </div>
                           <div className="text-sm text-gray-500 dark:text-gray-400">
