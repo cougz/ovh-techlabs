@@ -347,7 +347,7 @@ const WorkshopList: React.FC = () => {
                             Deploy Workshop
                           </button>
                         )}
-                        {(getEffectiveStatus(workshop) === 'active' || getEffectiveStatus(workshop) === 'completed') && (
+                        {(getEffectiveStatus(workshop) === 'active' || getEffectiveStatus(workshop) === 'completed') && workshop.active_attendees > 0 && (
                           <button
                             onClick={() => handleAction('cleanup', workshop.id)}
                             className="flex items-center w-full px-4 py-2 text-sm text-gray-700 hover:bg-gray-50"
