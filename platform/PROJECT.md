@@ -68,12 +68,21 @@ None currently
 
 #### 📋 Backlog
 - **Task ID: WORKER-SYSTEM-002** - Background job system malfunction - workers not processing cleanup jobs (CRITICAL PRIORITY)
-- **Task ID: STATUS-AUDIT-001** - Audit all status display locations for consistency across header, content cards, and status indicators (HIGH PRIORITY)
 - **Task ID: STATUS-INDICATORS-001** - Enhance status indicator system with comprehensive states and visual progress (MEDIUM PRIORITY)
 - **Task ID: CLEANUP-PRESENTATION-001** - Improve cleanup schedule presentation and remove inappropriate warning styling (MEDIUM PRIORITY)
 - **Task ID: STATE-VALIDATION-001** - Add workshop state validation with client-side validation and error handling (MEDIUM PRIORITY)
 
 #### ✅ Completed
+- [x] **Task ID: WORKSHOP-LIST-STATUS-FIX-001**
+  - Description: Fix workshop list showing "planning" when workshop has no attendees but appears as "active"
+  - Completed: July 23, 2025
+  - Notes: Fixed critical bug where workshops with 0 attendees incorrectly showed as "active" in the list view. The issue was that `active_attendees === attendee_count` evaluated to `0 === 0` (true) for empty workshops. Added check for `attendee_count > 0` before considering a workshop as fully deployed. All existing tests pass.
+
+- [x] **Task ID: WORKSHOP-LIST-STATUS-001**
+  - Description: Fix workshop list status display inconsistency - synchronize with detail page logic
+  - Completed: July 22, 2025
+  - Notes: Added getEffectiveStatus() function to WorkshopList component matching WorkshopDetail logic. Workshop list now shows "active" when all attendees deployed instead of raw "planning" status. Fixed status icons and dropdown actions. Added comprehensive test suite to verify status synchronization between list and detail pages.
+
 - [x] **Task ID: CLEANUP-WORKER-001**
   - Description: Cleanup process hanging/failing - 15+ minutes with no progress, workers appear idle
   - Completed: July 22, 2025

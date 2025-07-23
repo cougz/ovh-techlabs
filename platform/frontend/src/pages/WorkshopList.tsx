@@ -84,7 +84,8 @@ const WorkshopList: React.FC = () => {
     
     // Special logic for planning status - check actual attendee deployment states
     if (workshop.status === 'planning') {
-      const allAttendeesDeployed = workshop.active_attendees === workshop.attendee_count;
+      // Important: Only consider a workshop as deployed if it has attendees
+      const allAttendeesDeployed = workshop.attendee_count > 0 && workshop.active_attendees === workshop.attendee_count;
       const partiallyDeployed = workshop.active_attendees > 0 && workshop.active_attendees < workshop.attendee_count;
       const noAttendeesDeployed = workshop.active_attendees === 0;
       
