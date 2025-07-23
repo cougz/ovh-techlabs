@@ -67,6 +67,25 @@ techlabs-automation/
 None currently
 
 #### 📋 Backlog
+- **Task ID: CLEANUP-PARTIAL-001** - Fix cleanup resources only cleaning up first attendee environment (CRITICAL PRIORITY)
+  - **Issue**: The "Cleanup resources" button sometimes only cleans up the first attendee environment, leaving the second environment stuck in active state even after 15 minutes. Clicking "Cleanup Resources" again resolves the issue.
+  - **Impact**: Resources remain allocated unnecessarily, requiring manual intervention to complete cleanup
+  - **Solution**: Investigate and fix the partial cleanup issue, ensure all attendee environments are cleaned up in a single operation
+  
+- **Task ID: STATE-MANAGEMENT-REVAMP-001** - Complete overhaul of frontend state management system (CRITICAL PRIORITY)
+  - **Issue**: Frontend state display is very inconsistent - displayed states for workshops and attendees are often wrong
+  - **Required Workshop States**: planning → active → completed
+    - planning: workshop created, attendees created, but none rolled out
+    - active: attendees rolled out via terraform successfully
+    - completed: attendees automatically/manually deleted
+  - **Required Attendee States**: planning → active/failed → destroyed/failed
+    - planning: attendee created, but not rolled out
+    - active: attendee rolled out successfully
+    - failed: attendee not rolled out successfully (deployment failure)
+    - destroyed: attendee automatically/manually deleted (via automatism or cleanup button)
+    - failed: attendee not deleted successfully (cleanup failure)
+  - **Solution**: Implement comprehensive state management with proper state transitions, real-time synchronization, and accurate state display across all components
+
 - **Task ID: WORKER-SYSTEM-002** - Background job system malfunction - workers not processing cleanup jobs (CRITICAL PRIORITY)
 - **Task ID: STATUS-INDICATORS-001** - Enhance status indicator system with comprehensive states and visual progress (MEDIUM PRIORITY)
 - **Task ID: CLEANUP-PRESENTATION-001** - Improve cleanup schedule presentation and remove inappropriate warning styling (MEDIUM PRIORITY)
