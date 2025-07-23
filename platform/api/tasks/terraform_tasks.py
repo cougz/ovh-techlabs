@@ -647,3 +647,127 @@ def deploy_attendee_resources_with_retry(attendee_id: str, max_retries: int = 3)
     # This is a fallback return (should not reach here)
     db.close()
     return {"success": False, "error": "Unexpected code path"}
+
+
+@celery_app.task(bind=True, name='cleanup_workshop_attendees_sequential')
+def cleanup_workshop_attendees_sequential(self, workshop_id: str):
+    """
+    Cleanup all attendees in a workshop sequentially to ensure all resources are properly destroyed.
+    This addresses CLEANUP-PARTIAL-001 where sometimes only the first attendee is cleaned up.
+    """
+    db = SessionLocal()
+    
+    try:
+        logger.info(f"Starting sequential cleanup for workshop {workshop_id}")
+        
+        # Get workshop
+        workshop = db.query(Workshop).filter(Workshop.id == UUID(workshop_id)).first()
+        if not workshop:
+            logger.error(f"Workshop not found: {workshop_id}")
+            return {"error": "Workshop not found"}
+        
+        # Update workshop status to deleting
+        workshop.status = 'deleting'
+        db.commit()
+        
+        # Get all attendees that need cleanup (active or failed status)
+        attendees = db.query(Attendee).filter(
+            Attendee.workshop_id == UUID(workshop_id),
+            Attendee.status.in_(['active', 'failed'])
+        ).all()
+        
+        if not attendees:
+            logger.info(f"No attendees to cleanup for workshop {workshop_id}")
+            workshop.status = 'completed'
+            db.commit()
+            return {"message": "No attendees to cleanup", "attendees_cleaned": 0}
+        
+        logger.info(f"Starting sequential cleanup of {len(attendees)} attendees for workshop {workshop_id}")
+        
+        cleaned_count = 0
+        failed_count = 0
+        
+        for i, attendee in enumerate(attendees):
+            logger.info(f"Cleaning up attendee {i+1}/{len(attendees)}: {attendee.username}")
+            
+            # Update task progress
+            self.update_state(
+                state='PROGRESS',
+                meta={
+                    'current': i + 1,
+                    'total': len(attendees),
+                    'status': f'Cleaning up {attendee.username}',
+                    'attendee_id': str(attendee.id)
+                }
+            )
+            
+            # Broadcast cleanup progress
+            broadcast_deployment_progress(
+                str(workshop_id),
+                i + 1,
+                len(attendees),
+                f"Cleaning up {attendee.username}..."
+            )
+            
+            try:
+                # Call the individual attendee cleanup task synchronously
+                result = destroy_attendee_resources.apply(args=[str(attendee.id)])
+                
+                if result.successful() and result.result.get('success'):
+                    cleaned_count += 1
+                    logger.info(f"Successfully cleaned up {attendee.username}")
+                else:
+                    failed_count += 1
+                    error_msg = result.result.get('error', 'Unknown error')
+                    logger.error(f"Failed to cleanup {attendee.username}: {error_msg}")
+                    
+                    # Mark attendee cleanup as failed but continue with others
+                    attendee.status = 'failed'
+                    db.commit()
+                    
+            except Exception as e:
+                failed_count += 1
+                logger.error(f"Exception during cleanup of {attendee.username}: {str(e)}")
+                attendee.status = 'failed'
+                db.commit()
+        
+        # Update workshop status based on cleanup results
+        if failed_count == 0:
+            workshop.status = 'completed'
+            status_message = f"All {cleaned_count} attendees cleaned up successfully"
+        else:
+            workshop.status = 'completed'  # Still mark as completed but note failures
+            status_message = f"{cleaned_count} attendees cleaned up, {failed_count} failed"
+        
+        db.commit()
+        
+        # Broadcast final status
+        broadcast_status_update(
+            str(workshop_id),
+            "workshop", 
+            str(workshop_id),
+            workshop.status,
+            {"message": status_message}
+        )
+        
+        logger.info(f"Sequential cleanup completed for workshop {workshop_id}: {status_message}")
+        
+        return {
+            "message": status_message,
+            "attendees_cleaned": cleaned_count,
+            "attendees_failed": failed_count,
+            "workshop_status": workshop.status
+        }
+        
+    except Exception as e:
+        logger.error(f"Error during sequential workshop cleanup {workshop_id}: {str(e)}")
+        
+        # Update workshop status to failed
+        if workshop:
+            workshop.status = 'failed'
+            db.commit()
+        
+        return {"error": str(e)}
+        
+    finally:
+        db.close()

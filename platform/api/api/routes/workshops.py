@@ -218,25 +218,28 @@ async def cleanup_workshop_resources(
             detail="Workshop not found"
         )
     
-    # Update workshop status
-    workshop.status = 'deleting'
-    db.commit()
+    # Check if there are attendees to cleanup
+    attendees = db.query(Attendee).filter(
+        Attendee.workshop_id == workshop_id,
+        Attendee.status.in_(['active', 'failed'])
+    ).all()
     
-    # Queue cleanup tasks for all attendees
-    attendees = db.query(Attendee).filter(Attendee.workshop_id == workshop_id).all()
+    if not attendees:
+        return {
+            "message": "No resources to cleanup",
+            "attendee_count": 0
+        }
     
-    task_ids = []
-    for attendee in attendees:
-        if attendee.status in ['active', 'failed']:
-            # Import here to avoid circular imports
-            from tasks.terraform_tasks import destroy_attendee_resources
-            task = destroy_attendee_resources.delay(str(attendee.id))
-            task_ids.append(task.id)
+    # Use sequential cleanup to ensure all attendees are properly cleaned up
+    # This addresses CLEANUP-PARTIAL-001 where only first attendee was cleaned up
+    from tasks.terraform_tasks import cleanup_workshop_attendees_sequential
+    task = cleanup_workshop_attendees_sequential.delay(str(workshop_id))
     
     return {
-        "message": "Workshop cleanup started",
-        "task_ids": task_ids,
-        "attendee_count": len([a for a in attendees if a.status in ['active', 'failed']])
+        "message": "Workshop sequential cleanup started",
+        "task_id": task.id,
+        "attendee_count": len(attendees),
+        "cleanup_type": "sequential"
     }
 
 
