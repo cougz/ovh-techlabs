@@ -23,6 +23,7 @@ import { Workshop, Attendee, DeploymentLog } from '../types';
 import DropdownMenu from '../components/DropdownMenu';
 import DeploymentLogs from '../components/DeploymentLogs';
 import { useWebSocket } from '../hooks/useWebSocket';
+import useConfirmDialog from '../hooks/useConfirmDialog';
 
 // Error boundary component for debugging
 class ErrorBoundary extends React.Component<
@@ -81,6 +82,9 @@ const WorkshopDetail: React.FC = () => {
   const [isExporting, setIsExporting] = useState(false);
   const [isCleanupInProgress, setIsCleanupInProgress] = useState(false);
   const attendeeTriggerRefs = useRef<Record<string, HTMLButtonElement | null>>({});
+
+  // Confirmation dialogs
+  const { ConfirmDialog, showConfirmDialog } = useConfirmDialog();
 
   // WebSocket for real-time updates
   useWebSocket({
@@ -270,9 +274,14 @@ const WorkshopDetail: React.FC = () => {
       alert('Please add attendees before deploying the workshop');
       return;
     }
-    if (window.confirm(`Deploy workshop resources for ${attendees.length} attendees?`)) {
-      deployWorkshopMutation.mutate();
-    }
+    
+    showConfirmDialog({
+      title: 'Deploy Workshop',
+      message: `Deploy workshop resources for ${attendees.length} attendees?`,
+      onConfirm: () => deployWorkshopMutation.mutate(),
+      variant: 'default',
+      confirmLabel: 'Deploy',
+    });
   };
 
   const handleCleanupWorkshop = () => {
@@ -870,6 +879,9 @@ const WorkshopDetail: React.FC = () => {
           </div>
         </div>
       </div>
+      
+      {/* Confirmation dialogs */}
+      <ConfirmDialog />
     </ErrorBoundary>
   );
 };
