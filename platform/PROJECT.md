@@ -67,15 +67,22 @@ techlabs-automation/
 None currently
 
 #### 📋 Backlog
-
-- **Task ID: DASHBOARD-STATE-SYNC-001** - Fix dashboard workshop state inconsistency with workshops list (MEDIUM PRIORITY)
-- **Task ID: CLEANUP-BUTTON-SYNC-001** - Synchronize cleanup resources button visibility across workshop detail and list views (MEDIUM PRIORITY)
 - **Task ID: WORKER-SYSTEM-002** - Background job system malfunction - workers not processing cleanup jobs (CRITICAL PRIORITY)
 - **Task ID: STATUS-INDICATORS-001** - Enhance status indicator system with comprehensive states and visual progress (MEDIUM PRIORITY)
 - **Task ID: CLEANUP-PRESENTATION-001** - Improve cleanup schedule presentation and remove inappropriate warning styling (MEDIUM PRIORITY)
 - **Task ID: STATE-VALIDATION-001** - Add workshop state validation with client-side validation and error handling (MEDIUM PRIORITY)
 
 #### ✅ Completed
+- [x] **Task ID: CLEANUP-BUTTON-SYNC-001**
+  - Description: Synchronize cleanup resources button visibility across workshop detail and list views
+  - Completed: July 23, 2025
+  - Notes: Successfully synchronized cleanup resources button logic between WorkshopDetail and WorkshopList components. Key achievements: (1) Added active_attendees > 0 condition to WorkshopList cleanup button visibility logic, (2) Fixed inconsistency where WorkshopList showed cleanup button even when all attendee environments were deleted, (3) Button now only shows when workshop status is active/completed AND has active attendees, (4) Matches WorkshopDetail's needsCleanup logic which checks for attendees with 'active' or 'failed' status, (5) Added basic test coverage for WorkshopList rendering with different attendee states. Cleanup button visibility is now consistent across both workshop views, ensuring users only see the cleanup option when there are actual resources to clean up.
+
+- [x] **Task ID: DASHBOARD-STATE-SYNC-001**
+  - Description: Fix dashboard workshop state inconsistency with workshops list
+  - Completed: July 23, 2025
+  - Notes: Successfully synchronized workshop status display between Dashboard and WorkshopList components. Key achievements: (1) Added getEffectiveStatus function to Dashboard component matching WorkshopList logic, (2) Dashboard now calculates status based on attendee deployment states rather than raw database status, (3) Shows 'active' when all attendees deployed (even if DB status is 'planning'), shows 'deploying' when some attendees deployed, shows 'planning' when no attendees deployed, (4) Replaced raw workshop.status usage with getEffectiveStatus() in Dashboard JSX, (5) Added comprehensive test suite with 5 passing tests covering all scenarios. Status display is now consistent across Dashboard, WorkshopList, and WorkshopDetail components, eliminating user confusion about workshop states.
+
 - [x] **Task ID: POPUP-REPLACEMENT-001**
   - Description: Replace remaining browser popups with custom modal system (Settings saved, Cleanup resources confirmation)
   - Completed: July 23, 2025
