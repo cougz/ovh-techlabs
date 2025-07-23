@@ -1,7 +1,7 @@
 /**
  * Centralized status utility functions for workshop and attendee status management
  */
-import { WorkshopSummary, Workshop, Attendee } from '../types/schemas';
+import { WorkshopSummary, Workshop } from '../types/schemas';
 
 /**
  * Calculate the effective status of a workshop based on attendee deployment states
@@ -236,7 +236,7 @@ export function needsCleanup(workshop: WorkshopSummary | Workshop): boolean {
 /**
  * Sort workshops by status priority (active first, then deploying, etc.)
  */
-export function sortByStatusPriority(workshops: (WorkshopSummary | Workshop)[]): (WorkshopSummary | Workshop)[] {
+export function sortByStatusPriority<T extends Workshop | WorkshopSummary>(workshops: T[]): T[] {
   const statusPriority: Record<string, number> = {
     'failed': 1,      // Highest priority - needs attention
     'deploying': 2,   // Currently in progress

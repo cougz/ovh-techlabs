@@ -1,7 +1,7 @@
 /**
  * Test to define STATUS-INDICATORS-001 enhancements
  */
-import { render, screen } from '@testing-library/react';
+
 import '@testing-library/jest-dom';
 
 describe('Status Indicator System Enhancements', () => {
@@ -31,7 +31,7 @@ describe('Status Indicator System Enhancements', () => {
         'failed_status': 'failed'
       };
 
-      Object.entries(expectedBehavior).forEach(([scenario, expectedStatus]) => {
+      Object.entries(expectedBehavior).forEach(([, expectedStatus]) => {
         expect(expectedStatus).toBeTruthy();
       });
     });
@@ -129,7 +129,7 @@ describe('Status Indicator System Enhancements', () => {
         'loading_indicators': 'Show loading during status updates'
       };
 
-      Object.entries(transitionFeatures).forEach(([feature, description]) => {
+      Object.entries(transitionFeatures).forEach(([, description]) => {
         expect(description).toBeTruthy();
       });
     });

@@ -1,5 +1,5 @@
 import React from 'react';
-import { getStatusIconClass } from '../utils/statusUtils';
+
 
 interface ProgressBarProps {
   percentage: number;
