@@ -20,7 +20,7 @@ import {
   XMarkIcon
 } from '@heroicons/react/24/outline';
 
-import { WorkshopStatus } from '../types';
+import { WorkshopStatus, WorkshopSummary } from '../types';
 import { useWorkshopsQuery, useDeployWorkshopMutation, useCleanupWorkshopMutation } from '../state/queryIntegration';
 import { useAppStore } from '../state/store';
 import { getStateDescription } from '../state/stateMachine';
@@ -43,7 +43,7 @@ const WorkshopList: React.FC = () => {
   const cleanupMutation = useCleanupWorkshopMutation();
 
   // Filter workshops based on search and status
-  const filteredWorkshops = workshops.filter(workshop => {
+  const filteredWorkshops = workshops.filter((workshop: WorkshopSummary) => {
     const effectiveStatus = getEffectiveWorkshopState(workshop.id);
     const matchesSearch = workshop.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
       (workshop.description && workshop.description.toLowerCase().includes(searchTerm.toLowerCase()));

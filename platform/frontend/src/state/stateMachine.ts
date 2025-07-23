@@ -27,67 +27,63 @@ export type StateAction =
 
 // Workshop state transition rules
 const WORKSHOP_STATE_RULES: Record<WorkshopStatus, {
-  canTransitionTo: WorkshopStatus[];
+  canTransitionTo: readonly WorkshopStatus[];
   conditions: (context: StateContext) => boolean;
 }> = {
   planning: {
-    canTransitionTo: ['deploying', 'deleted'],
-    conditions: (context) => true, // Always can transition from planning
+    canTransitionTo: ['deploying', 'deleting'],
+    conditions: (_context) => true, // Always can transition from planning
   },
   deploying: {
     canTransitionTo: ['active', 'failed', 'planning'],
-    conditions: (context) => true,
+    conditions: (_context) => true,
   },
   active: {
     canTransitionTo: ['deleting', 'completed', 'failed'],
-    conditions: (context) => true,
+    conditions: (_context) => true,
   },
   failed: {
-    canTransitionTo: ['deploying', 'deleting', 'deleted'],
-    conditions: (context) => true,
+    canTransitionTo: ['deploying', 'deleting'],
+    conditions: (_context) => true,
   },
   deleting: {
     canTransitionTo: ['completed', 'failed'],
-    conditions: (context) => true,
+    conditions: (_context) => true,
   },
   completed: {
-    canTransitionTo: ['deleted'],
-    conditions: (context) => true,
-  },
-  deleted: {
-    canTransitionTo: [],
-    conditions: (context) => false, // No transitions from deleted
+    canTransitionTo: ['deleting'],
+    conditions: (_context) => true,
   },
 } as const;
 
 // Attendee state transition rules
 const ATTENDEE_STATE_RULES: Record<AttendeeStatus, {
-  canTransitionTo: AttendeeStatus[];
+  canTransitionTo: readonly AttendeeStatus[];
   conditions: (context: StateContext) => boolean;
 }> = {
   planning: {
     canTransitionTo: ['deploying'],
-    conditions: (context) => true,
+    conditions: (_context) => true,
   },
   deploying: {
     canTransitionTo: ['active', 'failed'],
-    conditions: (context) => true,
+    conditions: (_context) => true,
   },
   active: {
     canTransitionTo: ['deleting', 'failed'],
-    conditions: (context) => true,
+    conditions: (_context) => true,
   },
   failed: {
     canTransitionTo: ['deploying', 'deleting'],
-    conditions: (context) => true,
+    conditions: (_context) => true,
   },
   deleting: {
     canTransitionTo: ['deleted', 'failed'],
-    conditions: (context) => true,
+    conditions: (_context) => true,
   },
   deleted: {
     canTransitionTo: [],
-    conditions: (context) => false,
+    conditions: (_context) => false,
   },
 } as const;
 
@@ -227,7 +223,7 @@ export function applyOptimisticUpdate(
 export function getNextPossibleStates(
   currentState: WorkshopStatus | AttendeeStatus,
   entityType: 'workshop' | 'attendee'
-): (WorkshopStatus | AttendeeStatus)[] {
+): readonly (WorkshopStatus | AttendeeStatus)[] {
   const rules = entityType === 'workshop' 
     ? WORKSHOP_STATE_RULES[currentState as WorkshopStatus]
     : ATTENDEE_STATE_RULES[currentState as AttendeeStatus];

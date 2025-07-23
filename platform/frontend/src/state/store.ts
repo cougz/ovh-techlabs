@@ -4,8 +4,9 @@
  */
 
 import { create } from 'zustand';
-import { devtools, subscribeWithSelector } from 'zustand/middleware';
-import { immer } from 'zustand/middleware/immer';
+import { subscribeWithSelector } from 'zustand/middleware';
+// Immer middleware might not be available in this version - removing for now
+// import { immer } from 'zustand/middleware/immer';
 import { Workshop, WorkshopSummary, Attendee, WorkshopStatus, AttendeeStatus } from '../types';
 import { 
   calculateWorkshopState, 
@@ -95,9 +96,7 @@ const stateLogger = {
 };
 
 export const useAppStore = create<AppState>()(
-  devtools(
-    subscribeWithSelector(
-      immer((set, get) => ({
+  subscribeWithSelector((set, get) => ({
         // Initial state
         workshops: {},
         workshopSummaries: {},
@@ -115,47 +114,88 @@ export const useAppStore = create<AppState>()(
         },
 
         // Workshop actions
-        setWorkshop: (workshop) => set((state) => {
-          state.workshops[workshop.id] = workshop;
-        }),
+        setWorkshop: (workshop) => set((state) => ({
+          ...state,
+          workshops: {
+            ...state.workshops,
+            [workshop.id]: workshop,
+          },
+        })),
 
-        setWorkshopSummary: (workshop) => set((state) => {
-          state.workshopSummaries[workshop.id] = workshop;
-        }),
+        setWorkshopSummary: (workshop) => set((state) => ({
+          ...state,
+          workshopSummaries: {
+            ...state.workshopSummaries,
+            [workshop.id]: workshop,
+          },
+        })),
 
-        setWorkshops: (workshops) => set((state) => {
-          state.workshops = {};
+        setWorkshops: (workshops) => {
+          const workshopsMap: Record<string, Workshop> = {};
           workshops.forEach(workshop => {
-            state.workshops[workshop.id] = workshop;
+            workshopsMap[workshop.id] = workshop;
           });
-        }),
+          set((state) => ({
+            ...state,
+            workshops: workshopsMap,
+          }));
+        },
 
-        setWorkshopSummaries: (workshops) => set((state) => {
-          state.workshopSummaries = {};
+        setWorkshopSummaries: (workshops) => {
+          const workshopsMap: Record<string, WorkshopSummary> = {};
           workshops.forEach(workshop => {
-            state.workshopSummaries[workshop.id] = workshop;
+            workshopsMap[workshop.id] = workshop;
           });
-        }),
+          set((state) => ({
+            ...state,
+            workshopSummaries: workshopsMap,
+          }));
+        },
 
-        setAttendees: (workshopId, attendees) => set((state) => {
+        setAttendees: (workshopId, attendees) => {
+          const attendeesMap: Record<string, Attendee> = {};
           const attendeeIds: string[] = [];
           attendees.forEach(attendee => {
-            state.attendees[attendee.id] = attendee;
+            attendeesMap[attendee.id] = attendee;
             attendeeIds.push(attendee.id);
           });
-          state.workshopAttendees[workshopId] = attendeeIds;
-        }),
+          set((state) => ({
+            ...state,
+            attendees: {
+              ...state.attendees,
+              ...attendeesMap,
+            },
+            workshopAttendees: {
+              ...state.workshopAttendees,
+              [workshopId]: attendeeIds,
+            },
+          }));
+        },
 
         setAttendee: (attendee) => set((state) => {
-          state.attendees[attendee.id] = attendee;
+          const newWorkshopAttendees = { ...state.workshopAttendees };
           
           // Update workshop-attendee relationship if needed
-          if (attendee.workshop_id && !state.workshopAttendees[attendee.workshop_id]) {
-            state.workshopAttendees[attendee.workshop_id] = [];
+          if (attendee.workshop_id) {
+            if (!newWorkshopAttendees[attendee.workshop_id]) {
+              newWorkshopAttendees[attendee.workshop_id] = [];
+            }
+            if (!newWorkshopAttendees[attendee.workshop_id].includes(attendee.id)) {
+              newWorkshopAttendees[attendee.workshop_id] = [
+                ...newWorkshopAttendees[attendee.workshop_id],
+                attendee.id,
+              ];
+            }
           }
-          if (attendee.workshop_id && !state.workshopAttendees[attendee.workshop_id].includes(attendee.id)) {
-            state.workshopAttendees[attendee.workshop_id].push(attendee.id);
-          }
+          
+          return {
+            ...state,
+            attendees: {
+              ...state.attendees,
+              [attendee.id]: attendee,
+            },
+            workshopAttendees: newWorkshopAttendees,
+          };
         }),
 
         // State transitions with validation
@@ -175,20 +215,43 @@ export const useAppStore = create<AppState>()(
           
           if (!validation.valid) {
             stateLogger.logStateTransition(workshopId, workshop.status, newState, false, validation.error);
-            set((state) => {
-              state.ui.errors[workshopId] = validation.error!.message;
-            });
+            set((state) => ({
+              ...state,
+              ui: {
+                ...state.ui,
+                errors: {
+                  ...state.ui.errors,
+                  [workshopId]: validation.error!.message,
+                },
+              },
+            }));
             return;
           }
 
           // Apply state transition
           set((state) => {
-            if (state.workshops[workshopId]) {
-              state.workshops[workshopId].status = newState;
+            const updatedWorkshops = { ...state.workshops };
+            if (updatedWorkshops[workshopId]) {
+              updatedWorkshops[workshopId] = {
+                ...updatedWorkshops[workshopId],
+                status: newState,
+              };
             }
-            // Clear any optimistic updates and errors
-            delete state.ui.optimisticUpdates[workshopId];
-            delete state.ui.errors[workshopId];
+            
+            const updatedOptimistic = { ...state.ui.optimisticUpdates };
+            const updatedErrors = { ...state.ui.errors };
+            delete updatedOptimistic[workshopId];
+            delete updatedErrors[workshopId];
+            
+            return {
+              ...state,
+              workshops: updatedWorkshops,
+              ui: {
+                ...state.ui,
+                optimisticUpdates: updatedOptimistic,
+                errors: updatedErrors,
+              },
+            };
           });
 
           stateLogger.logStateTransition(workshopId, workshop.status, newState, true);
@@ -210,20 +273,43 @@ export const useAppStore = create<AppState>()(
           
           if (!validation.valid) {
             stateLogger.logStateTransition(attendeeId, attendee.status, newState, false, validation.error);
-            set((state) => {
-              state.ui.errors[attendeeId] = validation.error!.message;
-            });
+            set((state) => ({
+              ...state,
+              ui: {
+                ...state.ui,
+                errors: {
+                  ...state.ui.errors,
+                  [attendeeId]: validation.error!.message,
+                },
+              },
+            }));
             return;
           }
 
           // Apply state transition
           set((state) => {
-            if (state.attendees[attendeeId]) {
-              state.attendees[attendeeId].status = newState;
+            const updatedAttendees = { ...state.attendees };
+            if (updatedAttendees[attendeeId]) {
+              updatedAttendees[attendeeId] = {
+                ...updatedAttendees[attendeeId],
+                status: newState,
+              };
             }
-            // Clear any optimistic updates and errors
-            delete state.ui.optimisticUpdates[attendeeId];
-            delete state.ui.errors[attendeeId];
+            
+            const updatedOptimistic = { ...state.ui.optimisticUpdates };
+            const updatedErrors = { ...state.ui.errors };
+            delete updatedOptimistic[attendeeId];
+            delete updatedErrors[attendeeId];
+            
+            return {
+              ...state,
+              attendees: updatedAttendees,
+              ui: {
+                ...state.ui,
+                optimisticUpdates: updatedOptimistic,
+                errors: updatedErrors,
+              },
+            };
           });
 
           // Update workshop state based on attendee states
@@ -251,46 +337,97 @@ export const useAppStore = create<AppState>()(
 
           const optimisticState = applyOptimisticUpdate(action, entity.status as any, context);
           
-          set((state) => {
-            state.ui.optimisticUpdates[entityId] = optimisticState;
-          });
+          set((state) => ({
+            ...state,
+            ui: {
+              ...state.ui,
+              optimisticUpdates: {
+                ...state.ui.optimisticUpdates,
+                [entityId]: optimisticState,
+              },
+            },
+          }));
 
           stateLogger.logOptimisticUpdate(entityId, action, optimisticState);
         },
 
         clearOptimisticUpdate: (entityId) => set((state) => {
-          delete state.ui.optimisticUpdates[entityId];
+          const updatedOptimistic = { ...state.ui.optimisticUpdates };
+          delete updatedOptimistic[entityId];
+          return {
+            ...state,
+            ui: {
+              ...state.ui,
+              optimisticUpdates: updatedOptimistic,
+            },
+          };
         }),
 
         // UI actions
         setLoading: (entityId, loading) => set((state) => {
+          const updatedLoading = { ...state.ui.loading };
           if (loading) {
-            state.ui.loading[entityId] = true;
+            updatedLoading[entityId] = true;
           } else {
-            delete state.ui.loading[entityId];
+            delete updatedLoading[entityId];
           }
+          return {
+            ...state,
+            ui: {
+              ...state.ui,
+              loading: updatedLoading,
+            },
+          };
         }),
 
         setError: (entityId, error) => set((state) => {
+          const updatedErrors = { ...state.ui.errors };
           if (error) {
-            state.ui.errors[entityId] = error;
+            updatedErrors[entityId] = error;
           } else {
-            delete state.ui.errors[entityId];
+            delete updatedErrors[entityId];
           }
+          return {
+            ...state,
+            ui: {
+              ...state.ui,
+              errors: updatedErrors,
+            },
+          };
         }),
 
         // Real-time actions
-        setRealtimeConnected: (connected) => set((state) => {
-          state.realtime.connected = connected;
-          state.realtime.lastUpdate = Date.now();
-        }),
+        setRealtimeConnected: (connected) => set((state) => ({
+          ...state,
+          realtime: {
+            ...state.realtime,
+            connected,
+            lastUpdate: Date.now(),
+          },
+        })),
 
         addRealtimeSubscription: (workshopId) => set((state) => {
-          state.realtime.subscriptions.add(workshopId);
+          const newSubscriptions = new Set(state.realtime.subscriptions);
+          newSubscriptions.add(workshopId);
+          return {
+            ...state,
+            realtime: {
+              ...state.realtime,
+              subscriptions: newSubscriptions,
+            },
+          };
         }),
 
         removeRealtimeSubscription: (workshopId) => set((state) => {
-          state.realtime.subscriptions.delete(workshopId);
+          const newSubscriptions = new Set(state.realtime.subscriptions);
+          newSubscriptions.delete(workshopId);
+          return {
+            ...state,
+            realtime: {
+              ...state.realtime,
+              subscriptions: newSubscriptions,
+            },
+          };
         }),
 
         // Selectors
@@ -357,9 +494,6 @@ export const useAppStore = create<AppState>()(
           return state.ui.errors[entityId] || null;
         },
       }))
-    ),
-    { name: 'app-store' }
-  )
 );
 
 // Convenience hooks for common patterns

@@ -19,9 +19,9 @@ export function useWorkshopsQuery() {
     setWorkshopSummaries, 
     setLoading, 
     setError,
-    workshops,
+    workshopSummaries,
     isLoading,
-    error
+    getError
   } = useAppStore();
 
   const query = useQuery<WorkshopSummary[]>(
@@ -46,9 +46,9 @@ export function useWorkshopsQuery() {
 
   // Use store state instead of query state for consistency
   return {
-    workshops,
+    workshops: Object.values(workshopSummaries), // Convert Record to array
     isLoading: isLoading('workshop-list') || query.isLoading,
-    error: error('workshop-list') || query.error,
+    error: getError('workshop-list') || query.error,
     refetch: query.refetch,
   };
 }
@@ -160,7 +160,7 @@ export function useDeployWorkshopMutation() {
         setLoading(workshopId, true);
         setError(workshopId, null);
       },
-      onSuccess: async (data, workshopId) => {
+      onSuccess: async (_data, workshopId) => {
         // Clear optimistic update and apply real state
         clearOptimisticUpdate(workshopId);
         await transitionWorkshopState(workshopId, 'deploying');
@@ -204,7 +204,7 @@ export function useCleanupWorkshopMutation() {
         setLoading(workshopId, true);
         setError(workshopId, null);
       },
-      onSuccess: async (data, workshopId) => {
+      onSuccess: async (_data, workshopId) => {
         // Clear optimistic update and apply real state
         clearOptimisticUpdate(workshopId);
         await transitionWorkshopState(workshopId, 'deleting');
@@ -239,8 +239,8 @@ export function useCreateAttendeeMutation() {
         setLoading(`create-attendee-${workshopId}`, true);
         setError(`create-attendee-${workshopId}`, null);
       },
-      onSuccess: (data, { workshopId }) => {
-        setAttendee(data);
+      onSuccess: (_data, { workshopId }) => {
+        setAttendee(_data);
         setLoading(`create-attendee-${workshopId}`, false);
         
         // Invalidate related queries
