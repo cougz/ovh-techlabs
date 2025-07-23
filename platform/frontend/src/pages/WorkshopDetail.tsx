@@ -24,6 +24,7 @@ import DropdownMenu from '../components/DropdownMenu';
 import DeploymentLogs from '../components/DeploymentLogs';
 import { useWebSocket } from '../hooks/useWebSocket';
 import useConfirmDialog from '../hooks/useConfirmDialog';
+import useNotificationDialog from '../hooks/useNotificationDialog';
 
 // Error boundary component for debugging
 class ErrorBoundary extends React.Component<
@@ -85,6 +86,9 @@ const WorkshopDetail: React.FC = () => {
 
   // Confirmation dialogs
   const { ConfirmDialog, showConfirmDialog } = useConfirmDialog();
+  
+  // Notification dialogs
+  const { NotificationDialog, showNotification } = useNotificationDialog();
 
   // WebSocket for real-time updates
   useWebSocket({
@@ -160,7 +164,11 @@ const WorkshopDetail: React.FC = () => {
       },
       onError: (error: any) => {
         console.error('Failed to add attendee:', error);
-        alert('Failed to add attendee: ' + (error.response?.data?.detail || 'Unknown error'));
+        showNotification({
+          title: 'Error',
+          message: 'Failed to add attendee: ' + (error.response?.data?.detail || 'Unknown error'),
+          type: 'error'
+        });
       }
     }
   );
@@ -175,7 +183,11 @@ const WorkshopDetail: React.FC = () => {
       },
       onError: (error: any) => {
         console.error('Failed to delete attendee:', error);
-        alert('Failed to delete attendee: ' + (error.response?.data?.detail || 'Unknown error'));
+        showNotification({
+          title: 'Error',
+          message: 'Failed to delete attendee: ' + (error.response?.data?.detail || 'Unknown error'),
+          type: 'error'
+        });
       }
     }
   );
@@ -190,7 +202,11 @@ const WorkshopDetail: React.FC = () => {
       },
       onError: (error: any) => {
         console.error('Failed to deploy workshop:', error);
-        alert('Failed to deploy workshop: ' + (error.response?.data?.detail || 'Unknown error'));
+        showNotification({
+          title: 'Error',
+          message: 'Failed to deploy workshop: ' + (error.response?.data?.detail || 'Unknown error'),
+          type: 'error'
+        });
       }
     }
   );
@@ -209,7 +225,11 @@ const WorkshopDetail: React.FC = () => {
       },
       onError: (error: any) => {
         console.error('Failed to cleanup workshop:', error);
-        alert('Failed to cleanup workshop: ' + (error.response?.data?.detail || 'Unknown error'));
+        showNotification({
+          title: 'Error',
+          message: 'Failed to cleanup workshop: ' + (error.response?.data?.detail || 'Unknown error'),
+          type: 'error'
+        });
         setIsCleanupInProgress(false);
       }
     }
@@ -225,7 +245,11 @@ const WorkshopDetail: React.FC = () => {
       },
       onError: (error: any) => {
         console.error('Failed to delete workshop:', error);
-        alert('Failed to delete workshop: ' + (error.response?.data?.detail || 'Unknown error'));
+        showNotification({
+          title: 'Error',
+          message: 'Failed to delete workshop: ' + (error.response?.data?.detail || 'Unknown error'),
+          type: 'error'
+        });
       }
     }
   );
@@ -263,7 +287,11 @@ const WorkshopDetail: React.FC = () => {
   const handleAddAttendee = (e: React.FormEvent) => {
     e.preventDefault();
     if (!newAttendee.username.trim() || !newAttendee.email.trim()) {
-      alert('Please fill in all fields');
+      showNotification({
+        title: 'Validation Error',
+        message: 'Please fill in all fields',
+        type: 'warning'
+      });
       return;
     }
     addAttendeeMutation.mutate(newAttendee);
@@ -271,7 +299,11 @@ const WorkshopDetail: React.FC = () => {
 
   const handleDeployWorkshop = () => {
     if (attendees.length === 0) {
-      alert('Please add attendees before deploying the workshop');
+      showNotification({
+        title: 'Validation Error',
+        message: 'Please add attendees before deploying the workshop',
+        type: 'warning'
+      });
       return;
     }
     
@@ -288,30 +320,46 @@ const WorkshopDetail: React.FC = () => {
     if (isCleanupInProgress) {
       return; // Prevent multiple clicks
     }
-    setIsCleanupInProgress(true);
     
-    const confirmed = window.confirm('This will destroy all workshop resources. Are you sure?');
-    if (confirmed) {
-      cleanupWorkshopMutation.mutate();
-    } else {
-      setIsCleanupInProgress(false); // Reset if user cancels
-    }
+    showConfirmDialog({
+      title: 'Cleanup Resources',
+      message: 'This will destroy all workshop resources. Are you sure?',
+      onConfirm: () => {
+        setIsCleanupInProgress(true);
+        cleanupWorkshopMutation.mutate();
+      },
+      variant: 'danger',
+      confirmLabel: 'Cleanup',
+    });
   };
 
   const handleDeleteWorkshop = () => {
     const activeAttendees = attendees.filter(a => ['active', 'deploying'].includes(a.status));
     if (activeAttendees.length > 0) {
-      alert('Cannot delete workshop with active deployments. Please cleanup resources first.');
+      showNotification({
+        title: 'Cannot Delete',
+        message: 'Cannot delete workshop with active deployments. Please cleanup resources first.',
+        type: 'warning'
+      });
       return;
     }
-    if (window.confirm('This will permanently delete the workshop. Are you sure?')) {
-      deleteWorkshopMutation.mutate();
-    }
+    
+    showConfirmDialog({
+      title: 'Delete Workshop',
+      message: 'This will permanently delete the workshop. Are you sure?',
+      onConfirm: () => deleteWorkshopMutation.mutate(),
+      variant: 'danger',
+      confirmLabel: 'Delete',
+    });
   };
 
   const handleExportAttendees = async () => {
     if (!workshop) {
-      alert('Workshop data not available');
+      showNotification({
+        title: 'Error',
+        message: 'Workshop data not available',
+        type: 'error'
+      });
       return;
     }
     
@@ -372,7 +420,11 @@ const WorkshopDetail: React.FC = () => {
       
     } catch (error) {
       console.error('Failed to export attendee list:', error);
-      alert('Failed to export attendee list: ' + (error instanceof Error ? error.message : 'Unknown error'));
+      showNotification({
+        title: 'Export Failed',
+        message: 'Failed to export attendee list: ' + (error instanceof Error ? error.message : 'Unknown error'),
+        type: 'error'
+      });
     } finally {
       setIsExporting(false);
     }
@@ -858,9 +910,14 @@ const WorkshopDetail: React.FC = () => {
                             {attendee.status !== 'deleting' && (
                               <button
                                 onClick={() => {
-                                  if (window.confirm(`Remove ${attendee.username} from the workshop?`)) {
-                                    deleteAttendeeMutation.mutate(attendee.id);
-                                  }
+                                  setShowActions(null);
+                                  showConfirmDialog({
+                                    title: 'Remove Attendee',
+                                    message: `Remove ${attendee.username} from the workshop?`,
+                                    onConfirm: () => deleteAttendeeMutation.mutate(attendee.id),
+                                    variant: 'danger',
+                                    confirmLabel: 'Remove',
+                                  });
                                 }}
                                 className="flex items-center w-full px-4 py-2 text-sm text-danger-600 hover:bg-danger-50"
                               >
@@ -882,6 +939,9 @@ const WorkshopDetail: React.FC = () => {
       
       {/* Confirmation dialogs */}
       <ConfirmDialog />
+      
+      {/* Notification dialogs */}
+      <NotificationDialog />
     </ErrorBoundary>
   );
 };

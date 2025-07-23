@@ -68,6 +68,9 @@ None currently
 
 #### 📋 Backlog
 
+- **Task ID: POPUP-REPLACEMENT-001** - Replace remaining browser popups with custom modal system (Settings saved, Cleanup resources confirmation) (HIGH PRIORITY)
+- **Task ID: DASHBOARD-STATE-SYNC-001** - Fix dashboard workshop state inconsistency with workshops list (MEDIUM PRIORITY)
+- **Task ID: CLEANUP-BUTTON-SYNC-001** - Synchronize cleanup resources button visibility across workshop detail and list views (MEDIUM PRIORITY)
 - **Task ID: WORKER-SYSTEM-002** - Background job system malfunction - workers not processing cleanup jobs (CRITICAL PRIORITY)
 - **Task ID: STATUS-INDICATORS-001** - Enhance status indicator system with comprehensive states and visual progress (MEDIUM PRIORITY)
 - **Task ID: CLEANUP-PRESENTATION-001** - Improve cleanup schedule presentation and remove inappropriate warning styling (MEDIUM PRIORITY)

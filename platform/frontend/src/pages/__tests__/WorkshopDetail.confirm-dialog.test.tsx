@@ -121,7 +121,7 @@ describe('WorkshopDetail ConfirmDialog Integration', () => {
         expect(screen.getByRole('dialog')).toBeInTheDocument();
       });
 
-      expect(screen.getByText('Deploy Workshop')).toBeInTheDocument();
+      expect(screen.getByRole('dialog')).toHaveTextContent('Deploy Workshop');
       expect(screen.getByText('Deploy workshop resources for 2 attendees?')).toBeInTheDocument();
     });
 
@@ -141,7 +141,7 @@ describe('WorkshopDetail ConfirmDialog Integration', () => {
         expect(screen.getByRole('dialog')).toBeInTheDocument();
       });
 
-      const confirmButton = screen.getByRole('button', { name: /deploy/i });
+      const confirmButton = screen.getByRole('button', { name: 'Deploy' });
       fireEvent.click(confirmButton);
 
       // Should call the API
@@ -210,12 +210,13 @@ describe('WorkshopDetail ConfirmDialog Integration', () => {
       const deployButton = screen.getByRole('button', { name: /deploy workshop/i });
       fireEvent.click(deployButton);
 
-      // Should show alert about no attendees instead of confirmation dialog
-      // This tests the existing behavior before the confirmation dialog
+      // Should show notification dialog about no attendees instead of confirmation dialog
       await waitFor(() => {
-        // The component should handle this case - either show alert or different message
-        expect(deployButton).toBeInTheDocument();
+        expect(screen.getByRole('dialog')).toBeInTheDocument();
       });
+      
+      expect(screen.getByText('Validation Error')).toBeInTheDocument();
+      expect(screen.getByText('Please add attendees before deploying the workshop')).toBeInTheDocument();
     });
   });
 
