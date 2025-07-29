@@ -16,9 +16,11 @@
 - ✅ OVH API integration tested and verified with real deployments
 - ✅ CSV bulk import with OVH IAM-compliant username validation
 - ✅ Timezone-aware scheduling with automatic cleanup
+- ✅ Reliable workshop cleanup system with catch-up mechanisms
 - ✅ Dark mode UI with OVHcloud branding
 - ✅ 100% test coverage for implemented features
 - ✅ Docker deployment with health monitoring
+- ✅ Data-safe rebuild process for seamless updates
 
 This is actively maintained as part of OVHcloud's technical enablement and partner education initiatives.
 
@@ -64,6 +66,20 @@ docker compose up -d
 ```
 
 Access the dashboard at `http://localhost:3000`
+
+### Rebuilding the Platform
+
+For safe platform updates without data loss:
+
+```bash
+# Safe rebuild (preserves all data - recommended)
+./rebuild.sh
+
+# Complete reset (removes all data - use with caution)
+./rebuild.sh --reset-data
+```
+
+The default rebuild preserves all workshop data, attendee information, and database state for seamless updates.
 
 #### Environment Configuration
 
@@ -133,6 +149,41 @@ Step-by-step guides for workshop attendees:
 - [Platform Documentation](platform/README.md) - Detailed platform setup and usage
 - [Workbooks Documentation](workbooks/README.md) - Tutorial authoring guide
 - [API Reference](platform/api/README.md) - REST API documentation
+
+## 🔧 Operations & Troubleshooting
+
+### Workshop Cleanup Management
+
+The platform includes robust automatic cleanup mechanisms:
+
+- **Automatic Scheduling**: Workshops are automatically scheduled for cleanup 1 hour after completion
+- **Reliable Execution**: Unified lifecycle task runs every 30 minutes to process scheduled cleanups
+- **Startup Recovery**: Missed cleanups are automatically processed when the platform restarts
+- **Manual Trigger**: Use `POST /api/workshops/process-lifecycle` to manually trigger cleanup checks
+
+### Platform Management
+
+```bash
+# Check container health
+docker compose ps
+
+# View platform logs
+docker logs ovh-techlabs-api
+
+# Check Celery worker status
+docker logs ovh-techlabs-celery-worker
+
+# Manual cleanup trigger (if needed)
+curl -X POST http://localhost:8000/api/workshops/process-lifecycle \
+  -H "Authorization: Bearer <your-token>"
+```
+
+### Data Safety
+
+- All rebuild operations preserve data by default
+- Database migrations are handled automatically
+- Workshop and attendee data persists across platform updates
+- Use `./rebuild.sh --reset-data` only when starting fresh
 
 ## 🤝 Contributing
 
