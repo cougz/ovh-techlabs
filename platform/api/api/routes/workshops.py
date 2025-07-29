@@ -303,3 +303,17 @@ async def check_workshop_status_consistency(
         )
     
     return validation
+
+@router.post("/process-lifecycle")
+async def trigger_lifecycle_check(
+    db: Session = Depends(get_db),
+    current_user: str = Depends(get_current_user)
+):
+    """Manually trigger workshop lifecycle processing."""
+    from tasks.cleanup_tasks import process_workshop_lifecycle
+    task = process_workshop_lifecycle.delay()
+    
+    return {
+        "message": "Workshop lifecycle check triggered",
+        "task_id": task.id
+    }

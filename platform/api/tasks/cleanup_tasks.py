@@ -14,6 +14,64 @@ from tasks.terraform_tasks import destroy_attendee_resources
 logger = get_logger(__name__)
 
 @celery_app.task
+def process_workshop_lifecycle():
+    """Single task to handle both scheduling and executing workshop cleanup."""
+    db = SessionLocal()
+    
+    try:
+        now = datetime.now(ZoneInfo("UTC"))
+        
+        # Part 1: Schedule deletion for workshops that have ended
+        ended_workshops = db.query(Workshop).filter(
+            Workshop.end_date <= now,
+            Workshop.deletion_scheduled_at.is_(None),
+            Workshop.status.in_(["active", "deploying", "planning"])
+        ).all()
+        
+        for workshop in ended_workshops:
+            # Calculate deletion time using configured delay
+            from core.config import settings
+            deletion_time = workshop.end_date + timedelta(hours=settings.AUTO_CLEANUP_DELAY_HOURS)
+            workshop.deletion_scheduled_at = deletion_time
+            
+            logger.info(f"Scheduled workshop {workshop.id} for deletion at {deletion_time}")
+        
+        db.commit()
+        
+        # Part 2: Execute cleanup for workshops past their deletion time
+        workshops_to_cleanup = db.query(Workshop).filter(
+            Workshop.deletion_scheduled_at <= now,
+            ~Workshop.status.in_(["deleting", "deleted"])
+        ).all()
+        
+        for workshop in workshops_to_cleanup:
+            logger.info(f"Starting cleanup for workshop {workshop.id} (scheduled for {workshop.deletion_scheduled_at})")
+            
+            # Update status
+            workshop.status = "deleting"
+            db.commit()
+            
+            # Queue cleanup task
+            from tasks.terraform_tasks import cleanup_workshop_attendees_sequential
+            cleanup_workshop_attendees_sequential.delay(str(workshop.id))
+        
+        logger.info(f"Processed {len(ended_workshops)} ended workshops and {len(workshops_to_cleanup)} cleanups")
+        
+        # Add metrics for monitoring cleanup operations
+        logger.info(f"Cleanup metrics - Scheduled: {len(ended_workshops)}, Cleaned: {len(workshops_to_cleanup)}")
+        
+        # Consider adding Prometheus metrics if enabled
+        # if settings.PROMETHEUS_METRICS_ENABLED:
+        #     workshops_scheduled_for_cleanup.inc(len(ended_workshops))
+        #     workshops_cleaned_up.inc(len(workshops_to_cleanup))
+        
+    except Exception as e:
+        logger.error(f"Error in workshop lifecycle processing: {str(e)}")
+        db.rollback()
+    finally:
+        db.close()
+
+@celery_app.task
 def check_workshop_end_dates():
     """Check for workshops that have ended and schedule cleanup."""
     db = SessionLocal()

@@ -71,6 +71,10 @@ None currently
 - **Task ID: STATE-VALIDATION-001** - Add workshop state validation with client-side validation and error handling (MEDIUM PRIORITY)
 
 #### ✅ Completed
+- [x] **Task ID: WORKSHOP-CLEANUP-FIX-001**
+  - Description: Fix automatic workshop cleanup not working - merge separate periodic tasks into single lifecycle task
+  - Completed: July 29, 2025
+  - Notes: Successfully fixed workshop automatic cleanup system. Key achievements: (1) Merged separate check_workshop_end_dates and cleanup_expired_workshops tasks into single process_workshop_lifecycle task, eliminating timing issues between scheduling and execution, (2) Fixed status filtering by using ~Workshop.status.in_(["deleting", "deleted"]) to process all workshops needing cleanup regardless of status, (3) Added startup catch-up mechanism in main.py to immediately check for missed cleanups on application restart, (4) Updated Celery beat schedule to run unified task every 30 minutes instead of separate tasks at different intervals, (5) Added manual cleanup trigger endpoint POST /api/workshops/process-lifecycle for testing and manual intervention, (6) Updated cleanup_workshop_attendees_sequential to clear deletion_scheduled_at field after successful cleanup, (7) Added basic monitoring metrics logging for scheduled and cleaned workshops. The system now reliably schedules and executes workshop cleanup even after application downtime, with proper status transitions and catch-up mechanisms.
 - [x] **Task ID: STATUS-INDICATORS-001**
   - Description: Enhance status indicator system with comprehensive states and visual progress (MEDIUM PRIORITY)
   - Completed: July 23, 2025

@@ -734,9 +734,11 @@ def cleanup_workshop_attendees_sequential(self, workshop_id: str):
         # Update workshop status based on cleanup results
         if failed_count == 0:
             workshop.status = 'completed'
+            workshop.deletion_scheduled_at = None  # Clear the scheduled time
             status_message = f"All {cleaned_count} attendees cleaned up successfully"
         else:
             workshop.status = 'completed'  # Still mark as completed but note failures
+            # Log failures for manual intervention
             status_message = f"{cleaned_count} attendees cleaned up, {failed_count} failed"
         
         db.commit()

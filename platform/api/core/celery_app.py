@@ -30,13 +30,9 @@ celery_app.conf.update(
 
 # Schedule periodic tasks
 celery_app.conf.beat_schedule = {
-    'cleanup-expired-workshops': {
-        'task': 'tasks.cleanup_tasks.cleanup_expired_workshops',
-        'schedule': crontab(minute=0, hour='*/6'),  # Every 6 hours
-    },
-    'check-workshop-end-dates': {
-        'task': 'tasks.cleanup_tasks.check_workshop_end_dates',
-        'schedule': crontab(minute=0, hour='*/1'),  # Every hour
+    'process-workshop-lifecycle': {
+        'task': 'tasks.cleanup_tasks.process_workshop_lifecycle',
+        'schedule': crontab(minute='*/30'),  # Every 30 minutes
     },
     'update-workshop-statuses': {
         'task': 'tasks.cleanup_tasks.update_workshop_statuses',

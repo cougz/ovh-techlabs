@@ -23,6 +23,12 @@ Base.metadata.create_all(bind=engine)
 async def lifespan(app: FastAPI):
     # Startup
     logger.info("Starting TechLabs Automation API")
+    
+    # Queue immediate cleanup check on startup
+    from tasks.cleanup_tasks import process_workshop_lifecycle
+    process_workshop_lifecycle.delay()
+    logger.info("Queued startup workshop lifecycle check")
+    
     yield
     # Shutdown
     logger.info("Shutting down TechLabs Automation API")
