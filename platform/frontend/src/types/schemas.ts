@@ -104,6 +104,7 @@ export const UpdateWorkshopRequestSchema = z.object({
   start_date: DateTimeSchema.optional(),
   end_date: DateTimeSchema.optional(),
   status: WorkshopStatusSchema.optional(),
+  deletion_scheduled_at: DateTimeSchema.optional(),
 });
 
 export const CreateAttendeeRequestSchema = z.object({

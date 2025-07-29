@@ -67,6 +67,7 @@ class WorkshopUpdate(BaseModel):
     start_date: Optional[datetime] = None
     end_date: Optional[datetime] = None
     status: Optional[str] = None
+    deletion_scheduled_at: Optional[datetime] = Field(None, nullable=True)
 
 class WorkshopResponse(WorkshopBase):
     id: UUID

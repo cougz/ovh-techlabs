@@ -22,6 +22,7 @@ import { workshopApi, attendeeApi, deploymentApi } from '../services/api';
 import { Workshop, Attendee, DeploymentLog } from '../types';
 import DropdownMenu from '../components/DropdownMenu';
 import DeploymentLogs from '../components/DeploymentLogs';
+import EditDeletionDateDialog from '../components/EditDeletionDateDialog';
 import { useWebSocket } from '../hooks/useWebSocket';
 import useConfirmDialog from '../hooks/useConfirmDialog';
 import useNotificationDialog from '../hooks/useNotificationDialog';
@@ -82,6 +83,7 @@ const WorkshopDetail: React.FC = () => {
   const [deploymentProgress] = useState<Record<string, { progress: number; step: string }>>({});
   const [isExporting, setIsExporting] = useState(false);
   const [isCleanupInProgress, setIsCleanupInProgress] = useState(false);
+  const [showEditDeletionDate, setShowEditDeletionDate] = useState(false);
   const attendeeTriggerRefs = useRef<Record<string, HTMLButtonElement | null>>({});
 
   // Confirmation dialogs
@@ -231,6 +233,36 @@ const WorkshopDetail: React.FC = () => {
           type: 'error'
         });
         setIsCleanupInProgress(false);
+      }
+    }
+  );
+
+  // Update workshop mutation
+  const updateWorkshopMutation = useMutation(
+    (data: { deletion_scheduled_at?: string | null }) => {
+      // Convert null to undefined for API compatibility
+      const apiData: any = {};
+      if (data.deletion_scheduled_at !== null) {
+        apiData.deletion_scheduled_at = data.deletion_scheduled_at;
+      }
+      return workshopApi.updateWorkshop(id!, apiData);
+    },
+    {
+      onSuccess: () => {
+        queryClient.invalidateQueries(['workshop', id]);
+        showNotification({
+          title: 'Success',
+          message: 'Deletion date updated successfully',
+          type: 'success'
+        });
+      },
+      onError: (error: any) => {
+        console.error('Failed to update workshop:', error);
+        showNotification({
+          title: 'Error',
+          message: 'Failed to update deletion date: ' + (error.response?.data?.detail || 'Unknown error'),
+          type: 'error'
+        });
       }
     }
   );
@@ -704,12 +736,12 @@ const WorkshopDetail: React.FC = () => {
             </div>
           </div>
 
-          {workshop.deletion_scheduled_at && (
+          {workshop.deletion_scheduled_at ? (
             <div className="card">
               <div className="card-body">
                 <div className="flex items-center">
                   <ExclamationTriangleIcon className="h-8 w-8 text-amber-500 mr-3" />
-                  <div>
+                  <div className="flex-1">
                     <h3 className="text-lg font-medium text-gray-900">Cleanup Schedule</h3>
                     <p className="text-sm text-gray-600">
                       Environment deletion
@@ -719,6 +751,34 @@ const WorkshopDetail: React.FC = () => {
                       </span>
                     </p>
                   </div>
+                  <button
+                    onClick={() => setShowEditDeletionDate(true)}
+                    className="text-blue-600 hover:text-blue-700 p-2"
+                    title="Edit deletion date"
+                  >
+                    <PencilIcon className="h-5 w-5" />
+                  </button>
+                </div>
+              </div>
+            </div>
+          ) : (
+            <div className="card">
+              <div className="card-body">
+                <div className="flex items-center">
+                  <CalendarIcon className="h-8 w-8 text-gray-400 mr-3" />
+                  <div className="flex-1">
+                    <h3 className="text-lg font-medium text-gray-900">Cleanup Schedule</h3>
+                    <p className="text-sm text-gray-600">
+                      No automatic cleanup scheduled
+                    </p>
+                  </div>
+                  <button
+                    onClick={() => setShowEditDeletionDate(true)}
+                    className="text-blue-600 hover:text-blue-700 p-2"
+                    title="Set deletion date"
+                  >
+                    <PlusIcon className="h-5 w-5" />
+                  </button>
                 </div>
               </div>
             </div>
@@ -942,6 +1002,21 @@ const WorkshopDetail: React.FC = () => {
       
       {/* Notification dialogs */}
       <NotificationDialog />
+      
+      {/* Edit deletion date dialog */}
+      {workshop && (
+        <EditDeletionDateDialog
+          isOpen={showEditDeletionDate}
+          onClose={() => setShowEditDeletionDate(false)}
+          onConfirm={(date) => {
+            updateWorkshopMutation.mutate({ deletion_scheduled_at: date });
+            setShowEditDeletionDate(false);
+          }}
+          currentDate={workshop.deletion_scheduled_at}
+          workshopName={workshop.name}
+          workshopEndDate={workshop.end_date}
+        />
+      )}
     </ErrorBoundary>
   );
 };
