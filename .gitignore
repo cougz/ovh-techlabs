@@ -86,6 +86,10 @@ pids/
 *.seed
 *.pid.lock
 
+# Agent files
+CLAUDE.md
+.claude/
+
 # Temporary folders
 tmp/
 temp/
