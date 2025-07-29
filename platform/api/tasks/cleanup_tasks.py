@@ -6,10 +6,11 @@ from zoneinfo import ZoneInfo
 from core.celery_app import celery_app
 from core.database import SessionLocal
 from core.logging import get_logger
+from core.config import settings
 from models.workshop import Workshop
 from models.attendee import Attendee
 from services.workshop_status_service import WorkshopStatusService
-from tasks.terraform_tasks import destroy_attendee_resources
+from tasks.terraform_tasks import destroy_attendee_resources, cleanup_workshop_attendees_sequential
 
 logger = get_logger(__name__)
 
@@ -30,13 +31,14 @@ def process_workshop_lifecycle():
         
         for workshop in ended_workshops:
             # Calculate deletion time using configured delay
-            from core.config import settings
             deletion_time = workshop.end_date + timedelta(hours=settings.AUTO_CLEANUP_DELAY_HOURS)
             workshop.deletion_scheduled_at = deletion_time
             
             logger.info(f"Scheduled workshop {workshop.id} for deletion at {deletion_time}")
         
-        db.commit()
+        # Only commit after all workshops are processed
+        if ended_workshops:
+            db.commit()
         
         # Part 2: Execute cleanup for workshops past their deletion time
         workshops_to_cleanup = db.query(Workshop).filter(
@@ -45,6 +47,19 @@ def process_workshop_lifecycle():
         ).all()
         
         for workshop in workshops_to_cleanup:
+            # Validate workshop has attendees that need cleanup
+            attendees_needing_cleanup = db.query(Attendee).filter(
+                Attendee.workshop_id == workshop.id,
+                Attendee.status.in_(["active", "failed"])
+            ).count()
+            
+            if attendees_needing_cleanup == 0:
+                logger.info(f"Workshop {workshop.id} has no attendees needing cleanup, marking as completed")
+                workshop.status = "completed"
+                workshop.deletion_scheduled_at = None
+                db.commit()
+                continue
+            
             logger.info(f"Starting cleanup for workshop {workshop.id} (scheduled for {workshop.deletion_scheduled_at})")
             
             # Update status
@@ -52,7 +67,6 @@ def process_workshop_lifecycle():
             db.commit()
             
             # Queue cleanup task
-            from tasks.terraform_tasks import cleanup_workshop_attendees_sequential
             cleanup_workshop_attendees_sequential.delay(str(workshop.id))
         
         logger.info(f"Processed {len(ended_workshops)} ended workshops and {len(workshops_to_cleanup)} cleanups")

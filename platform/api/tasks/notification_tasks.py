@@ -125,7 +125,7 @@ Dear {attendee_name},
 Your workshop environment for "{workshop_name}" will be automatically cleaned up in approximately 24 hours.
 
 Important Information:
-- Workshop environments are automatically deleted 72 hours after the workshop end date
+- Workshop environments are automatically deleted 1 hour after the workshop end date
 - Your environment will be deleted on: {deletion_formatted}
 - All data, configurations, and resources will be permanently removed
 
@@ -174,7 +174,7 @@ TechLabs Automation Team
         <div class="details">
             <h3>Important Information</h3>
             <ul>
-                <li>Workshop environments are automatically deleted 72 hours after the workshop end date</li>
+                <li>Workshop environments are automatically deleted 1 hour after the workshop end date</li>
                 <li><strong>Your environment will be deleted on:</strong> {deletion_formatted}</li>
                 <li>All data, configurations, and resources will be permanently removed</li>
             </ul>
@@ -199,154 +199,3 @@ TechLabs Automation Team
     
     send_email_notification.delay(attendee_email, subject, body, html_body)
 
-@celery_app.task
-def send_workshop_completion_notification(attendee_email: str, attendee_name: str, workshop_name: str):
-    """Send workshop completion notification."""
-    subject = f"Workshop Completed - {workshop_name}"
-    
-    body = f"""
-Dear {attendee_name},
-
-The workshop "{workshop_name}" has been completed.
-
-Your workshop environment will be automatically cleaned up in 72 hours to ensure proper resource management.
-
-If you need to access any data or configurations from your workshop environment, please do so within the next 72 hours.
-
-Thank you for participating in our workshop!
-
-Best regards,
-TechLabs Automation Team
-"""
-    
-    html_body = f"""
-<!DOCTYPE html>
-<html>
-<head>
-    <style>
-        body {{ font-family: Arial, sans-serif; line-height: 1.6; }}
-        .container {{ max-width: 600px; margin: 0 auto; padding: 20px; }}
-        .header {{ background-color: #f4f4f4; padding: 20px; text-align: center; }}
-        .info {{ background-color: #d4edda; padding: 15px; margin: 20px 0; border-radius: 5px; border-left: 4px solid #28a745; }}
-        .warning {{ background-color: #fff3cd; padding: 10px; margin: 20px 0; border-radius: 5px; border-left: 4px solid #ffc107; }}
-    </style>
-</head>
-<body>
-    <div class="container">
-        <div class="header">
-            <h2>Workshop Completed</h2>
-        </div>
-        
-        <p>Dear {attendee_name},</p>
-        
-        <div class="info">
-            <p>The workshop <strong>"{workshop_name}"</strong> has been completed.</p>
-        </div>
-        
-        <div class="warning">
-            <p><strong>Important:</strong> Your workshop environment will be automatically cleaned up in 72 hours to ensure proper resource management.</p>
-            <p>If you need to access any data or configurations from your workshop environment, please do so within the next 72 hours.</p>
-        </div>
-        
-        <p>Thank you for participating in our workshop!</p>
-        
-        <p>Best regards,<br>TechLabs Automation Team</p>
-    </div>
-</body>
-</html>
-"""
-    
-    send_email_notification.delay(attendee_email, subject, body, html_body)
-
-@celery_app.task
-def send_cleanup_warning_notification(attendee_email: str, attendee_name: str, workshop_name: str, deletion_time: str):
-    """Send environment cleanup warning notification."""
-    subject = f"Environment Cleanup Notice - {workshop_name}"
-    
-    # Parse deletion time for display
-    from datetime import datetime
-    try:
-        deletion_dt = datetime.fromisoformat(deletion_time.replace('Z', '+00:00'))
-        deletion_formatted = deletion_dt.strftime("%B %d, %Y at %I:%M %p UTC")
-    except:
-        deletion_formatted = deletion_time
-    
-    body = f"""
-Dear {attendee_name},
-
-Your workshop environment for "{workshop_name}" will be automatically cleaned up in approximately 24 hours.
-
-Important Information:
-- Workshop environments are automatically deleted 72 hours after the workshop end date
-- Your environment will be deleted on: {deletion_formatted}
-- All data, configurations, and resources will be permanently removed
-
-Action Required:
-If you need to save any work, configurations, or data from your workshop environment, please do so within the next 24 hours. After deletion, this data cannot be recovered.
-
-What will be deleted:
-- Your OVH Cloud Project and all associated resources
-- Any configurations, files, or data you created during the workshop
-- Access credentials and project permissions
-
-Thank you for participating in our workshop!
-
-Best regards,
-TechLabs Automation Team
-"""
-    
-    html_body = f"""
-<!DOCTYPE html>
-<html>
-<head>
-    <style>
-        body {{ font-family: Arial, sans-serif; line-height: 1.6; }}
-        .container {{ max-width: 600px; margin: 0 auto; padding: 20px; }}
-        .header {{ background-color: #f4f4f4; padding: 20px; text-align: center; }}
-        .warning {{ background-color: #fff3cd; padding: 15px; margin: 20px 0; border-radius: 5px; border-left: 4px solid #ffc107; }}
-        .important {{ background-color: #f8d7da; padding: 15px; margin: 20px 0; border-radius: 5px; border-left: 4px solid #dc3545; }}
-        .details {{ background-color: #e8f4f8; padding: 15px; margin: 20px 0; border-radius: 5px; }}
-    </style>
-</head>
-<body>
-    <div class="container">
-        <div class="header">
-            <h2>Environment Cleanup Notice</h2>
-        </div>
-        
-        <p>Dear {attendee_name},</p>
-        
-        <p>Your workshop environment for <strong>"{workshop_name}"</strong> will be automatically cleaned up in approximately 24 hours.</p>
-        
-        <div class="important">
-            <h3>⚠️ Action Required</h3>
-            <p>If you need to save any work, configurations, or data from your workshop environment, please do so within the next 24 hours. After deletion, this data cannot be recovered.</p>
-        </div>
-        
-        <div class="details">
-            <h3>Important Information</h3>
-            <ul>
-                <li>Workshop environments are automatically deleted 72 hours after the workshop end date</li>
-                <li><strong>Your environment will be deleted on:</strong> {deletion_formatted}</li>
-                <li>All data, configurations, and resources will be permanently removed</li>
-            </ul>
-        </div>
-        
-        <div class="warning">
-            <h3>What will be deleted:</h3>
-            <ul>
-                <li>Your OVH Cloud Project and all associated resources</li>
-                <li>Any configurations, files, or data you created during the workshop</li>
-                <li>Access credentials and project permissions</li>
-            </ul>
-        </div>
-        
-        <p>Thank you for participating in our workshop!</p>
-        
-        <p>Best regards,<br>TechLabs Automation Team</p>
-    </div>
-</body>
-</html>
-"""
-    
-    send_email_notification.delay(attendee_email, subject, body, html_body)
