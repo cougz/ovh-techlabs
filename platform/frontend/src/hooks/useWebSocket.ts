@@ -84,6 +84,11 @@ export const useWebSocket = ({
                 // Invalidate React Query cache to trigger re-fetch
                 queryClient.invalidateQueries(['attendees', workshopId]);
                 queryClient.invalidateQueries(['workshop', workshopId]);
+                
+                // IMPORTANT: Also invalidate the workshops list query
+                // This ensures Dashboard and WorkshopList pages get real-time updates
+                queryClient.invalidateQueries('workshops');
+                queryClient.invalidateQueries(['workshops']);
 
                 // Call callback
                 onStatusUpdate?.(message.entity_type, message.entity_id, message.status, message.details);
