@@ -207,7 +207,35 @@ describe('WorkshopDetail Cleanup Schedule Presentation', () => {
       const workshopWithoutCleanup = { ...mockWorkshopWithCleanup };
       delete workshopWithoutCleanup.deletion_scheduled_at;
       
-      mockedWorkshopApi.workshopApi.getWorkshop.mockResolvedValue(workshopWithoutCleanup);
+      // Override the useQuery mock for this specific test
+      mockUseQuery.mockImplementation((key: any) => {
+        if (Array.isArray(key) && key[0] === 'workshop') {
+          return {
+            data: workshopWithoutCleanup,
+            isLoading: false,
+            error: null,
+          };
+        }
+        if (Array.isArray(key) && key[0] === 'attendees') {
+          return {
+            data: mockAttendees,
+            isLoading: false,
+            error: null,
+          };
+        }
+        if (Array.isArray(key) && key[0] === 'deploymentLogs') {
+          return {
+            data: [],
+            isLoading: false,
+            error: null,
+          };
+        }
+        return {
+          data: undefined,
+          isLoading: false,
+          error: null,
+        };
+      });
       
       renderWorkshopDetail();
       
