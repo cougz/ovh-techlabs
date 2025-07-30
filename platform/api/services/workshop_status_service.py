@@ -32,6 +32,13 @@ class WorkshopStatusService:
         'active': 'active',
     }
     
+    # Lifecycle states that should not be overridden by attendee-based calculations
+    # These represent active processes (cleanup, deployment) that must complete
+    LIFECYCLE_STATES = {
+        'deleting',    # Workshop is being cleaned up
+        'deploying',   # Workshop is being deployed
+    }
+    
     @classmethod
     def calculate_workshop_status_from_attendees(cls, attendee_statuses: List[str]) -> str:
         """
@@ -66,6 +73,10 @@ class WorkshopStatusService:
         """
         Update a workshop's status based on its attendees' statuses.
         
+        This method respects lifecycle states and will not override them with
+        attendee-based calculations. Lifecycle states like 'deleting' and 'deploying'
+        represent active processes that must complete before status can be recalculated.
+        
         Args:
             workshop_id: The workshop ID to update
             db: Database session
@@ -78,18 +89,25 @@ class WorkshopStatusService:
         if not workshop:
             return None
         
+        # CRITICAL FIX: Don't override lifecycle states with attendee-based calculations
+        # If workshop is in a lifecycle state (deleting, deploying), preserve it
+        if workshop.status in cls.LIFECYCLE_STATES:
+            print(f"Workshop {workshop_id} is in lifecycle state '{workshop.status}', preserving status (not overriding with attendee calculation)")
+            return workshop.status
+        
         # Get all attendee statuses for this workshop
         attendees = db.query(Attendee).filter(Attendee.workshop_id == workshop_id).all()
         attendee_statuses = [attendee.status for attendee in attendees]
         
-        # Calculate new status
+        # Calculate new status based on attendees
         new_status = cls.calculate_workshop_status_from_attendees(attendee_statuses)
         
         # Update workshop status if it changed
         if workshop.status != new_status:
+            old_status = workshop.status
             workshop.status = new_status
             db.commit()
-            print(f"Workshop {workshop_id} status updated from '{workshop.status}' to '{new_status}' based on attendees: {attendee_statuses}")
+            print(f"Workshop {workshop_id} status updated from '{old_status}' to '{new_status}' based on attendees: {attendee_statuses}")
         
         return new_status
     
@@ -102,3 +120,35 @@ class WorkshopStatusService:
     def is_status_worse_than(cls, status1: str, status2: str) -> bool:
         """Check if status1 is worse (lower priority) than status2."""
         return cls.get_status_priority(status1) < cls.get_status_priority(status2)
+    
+    @classmethod
+    def is_lifecycle_state(cls, status: str) -> bool:
+        """
+        Check if a status represents an active lifecycle process.
+        
+        Lifecycle states represent ongoing processes (cleanup, deployment) that
+        should not be overridden by attendee-based status calculations.
+        
+        Args:
+            status: The status to check
+            
+        Returns:
+            True if status is a lifecycle state, False otherwise
+        """
+        return status in cls.LIFECYCLE_STATES
+    
+    @classmethod
+    def can_update_from_attendees(cls, current_status: str) -> bool:
+        """
+        Check if a workshop status can be updated based on attendee statuses.
+        
+        Workshops in lifecycle states (deleting, deploying) should not have their
+        status overridden by attendee-based calculations until the process completes.
+        
+        Args:
+            current_status: The current workshop status
+            
+        Returns:
+            True if status can be updated from attendees, False otherwise
+        """
+        return not cls.is_lifecycle_state(current_status)
