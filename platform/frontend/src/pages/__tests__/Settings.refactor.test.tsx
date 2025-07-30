@@ -2,6 +2,17 @@ import React from 'react';
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import { BrowserRouter } from 'react-router-dom';
 import Settings from '../Settings';
+import { settingsApi } from '../../services/api';
+
+// Mock the settings API  
+jest.mock('../../services/api', () => ({
+  settingsApi: {
+    getLoginPrefixConfig: jest.fn(),
+    setLoginPrefixConfig: jest.fn(),
+  },
+}));
+
+const mockSettingsApi = settingsApi as jest.Mocked<typeof settingsApi>;
 
 const renderComponent = () => {
   return render(
@@ -23,6 +34,13 @@ describe('Settings - Refactored Page', () => {
       },
       writable: true,
     });
+
+    // Mock API responses
+    mockSettingsApi.getLoginPrefixConfig.mockResolvedValue({
+      login_prefix: '',
+      export_format: 'OVHcloud Login'
+    });
+    mockSettingsApi.setLoginPrefixConfig.mockResolvedValue(undefined);
 
     // Reset mocks
     jest.clearAllMocks();
@@ -105,19 +123,13 @@ describe('Settings - Refactored Page', () => {
     
     const saveButton = screen.getByText('Save Settings');
     
-    // Mock successful save
-    const originalAlert = window.alert;
-    const mockAlert = jest.fn();
-    window.alert = mockAlert;
-    
     fireEvent.click(saveButton);
     
-    // Should show success confirmation
+    // Should show success confirmation via custom notification dialog
     await waitFor(() => {
-      expect(mockAlert).toHaveBeenCalledWith('Settings saved successfully!');
+      expect(screen.getByText('Settings Saved')).toBeInTheDocument();
+      expect(screen.getByText('Settings saved successfully!')).toBeInTheDocument();
     });
-    
-    window.alert = originalAlert;
   });
 
   it('should persist settings to localStorage when saved', async () => {

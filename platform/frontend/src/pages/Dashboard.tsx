@@ -13,13 +13,21 @@ import { workshopApi } from '../services/api';
 import { WorkshopSummary } from '../types';
 import StatusIndicator from '../components/StatusIndicator';
 import { getEffectiveStatus, sortByStatusPriority } from '../utils/statusUtils';
+import { useGlobalWebSocket } from '../hooks/useGlobalWebSocket';
 
 const Dashboard: React.FC = () => {
+  // Enable global WebSocket for real-time updates
+  useGlobalWebSocket({
+    onStatusUpdate: (workshopId, entityType, entityId, status) => {
+      console.log(`Dashboard: WebSocket status update - ${entityType} ${entityId} in workshop ${workshopId}: ${status}`);
+    }
+  });
+
   const { data: workshops = [], isLoading } = useQuery<WorkshopSummary[]>(
     'workshops',
     () => workshopApi.getWorkshops({ limit: 10 }),
     {
-      refetchInterval: 30000, // Refetch every 30 seconds
+      refetchInterval: 30000, // Fallback polling, but WebSocket should handle real-time updates
     }
   );
 
@@ -93,9 +101,9 @@ const Dashboard: React.FC = () => {
   }
 
   return (
-    <div className="animate-fade-in dark:bg-slate-900 dark:border dark:border-slate-700 dark:shadow-2xl">
+    <div className="animate-fade-in border-2 border-transparent dark:bg-slate-900 dark:border-slate-700 dark:shadow-2xl">
       {/* Header */}
-      <div className="mb-8 dark:border-b-2 dark:border-slate-600">
+      <div className="mb-8 border-b-2 border-transparent dark:border-slate-600">
         <div className="flex justify-between items-center">
           <div>
             <h1 className="text-2xl font-bold text-gray-900 dark:text-gray-100">Dashboard</h1>
@@ -116,7 +124,7 @@ const Dashboard: React.FC = () => {
       {/* Stats */}
       <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-4 mb-12">
         {statCards.map((item) => (
-          <div key={item.name} className="card dark:bg-slate-800 dark:border-2 dark:border-slate-600">
+          <div key={item.name} className="card">
             <div className="card-body">
               <div className="flex items-center">
                 <div className="flex-shrink-0">
@@ -141,8 +149,8 @@ const Dashboard: React.FC = () => {
       </div>
 
       {/* Recent Workshops */}
-      <div className="card dark:bg-slate-800 dark:border-2 dark:border-slate-600">
-        <div className="card-header dark:bg-slate-700 dark:border-b-2 dark:border-slate-600">
+      <div className="card">
+        <div className="card-header">
           <div className="flex justify-between items-center">
             <h3 className="text-lg leading-6 font-medium text-gray-900 dark:text-gray-100">
               Recent Workshops

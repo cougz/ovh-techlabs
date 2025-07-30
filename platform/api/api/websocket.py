@@ -17,6 +17,10 @@ class ConnectionManager:
         self.active_connections: Dict[str, Set[WebSocket]] = {}
         # Store connection to workshop mapping
         self.connection_workshops: Dict[WebSocket, Set[str]] = {}
+        # Store global connections that receive updates for all workshops
+        self.global_connections: Set[WebSocket] = set()
+        # Store connection to global mapping
+        self.connection_global: Dict[WebSocket, bool] = {}
     
     async def connect(self, websocket: WebSocket, workshop_id: str):
         """Accept WebSocket connection and add to workshop group."""
@@ -34,8 +38,18 @@ class ConnectionManager:
         
         logger.info(f"WebSocket connected to workshop {workshop_id}")
     
+    async def connect_global(self, websocket: WebSocket):
+        """Accept WebSocket connection for global updates."""
+        await websocket.accept()
+        
+        # Add to global connections
+        self.global_connections.add(websocket)
+        self.connection_global[websocket] = True
+        
+        logger.info("WebSocket connected to global updates")
+    
     def disconnect(self, websocket: WebSocket):
-        """Remove WebSocket connection from all workshop groups."""
+        """Remove WebSocket connection from all workshop groups and global connections."""
         # Get all workshops this connection was subscribed to
         workshop_ids = self.connection_workshops.get(websocket, set())
         
@@ -47,11 +61,16 @@ class ConnectionManager:
                 if not self.active_connections[workshop_id]:
                     del self.active_connections[workshop_id]
         
+        # Remove from global connections
+        self.global_connections.discard(websocket)
+        if websocket in self.connection_global:
+            del self.connection_global[websocket]
+        
         # Remove connection tracking
         if websocket in self.connection_workshops:
             del self.connection_workshops[websocket]
         
-        logger.info(f"WebSocket disconnected from workshops: {workshop_ids}")
+        logger.info(f"WebSocket disconnected from workshops: {workshop_ids} (global: {websocket in self.connection_global})")
     
     async def send_personal_message(self, message: str, websocket: WebSocket):
         """Send message to specific WebSocket connection."""
@@ -62,10 +81,7 @@ class ConnectionManager:
             self.disconnect(websocket)
     
     async def broadcast_to_workshop(self, workshop_id: str, message: dict):
-        """Broadcast message to all connections in a workshop."""
-        if workshop_id not in self.active_connections:
-            return
-        
+        """Broadcast message to all connections in a workshop and global connections."""
         message_str = json.dumps({
             **message,
             "timestamp": datetime.utcnow().isoformat(),
@@ -73,11 +89,22 @@ class ConnectionManager:
         })
         
         disconnected = []
-        for connection in self.active_connections[workshop_id]:
+        
+        # Send to workshop-specific connections
+        if workshop_id in self.active_connections:
+            for connection in self.active_connections[workshop_id]:
+                try:
+                    await connection.send_text(message_str)
+                except Exception as e:
+                    logger.error(f"Error broadcasting to workshop connection: {e}")
+                    disconnected.append(connection)
+        
+        # Send to global connections
+        for connection in self.global_connections:
             try:
                 await connection.send_text(message_str)
             except Exception as e:
-                logger.error(f"Error broadcasting to connection: {e}")
+                logger.error(f"Error broadcasting to global connection: {e}")
                 disconnected.append(connection)
         
         # Clean up disconnected connections
@@ -169,5 +196,51 @@ async def websocket_endpoint(
         manager.disconnect(websocket)
     except Exception as e:
         logger.error(f"WebSocket error: {e}")
+        manager.disconnect(websocket)
+        await websocket.close(code=1011, reason="Internal error")
+
+async def global_websocket_endpoint(
+    websocket: WebSocket,
+    token: str = None,
+    db: Session = Depends(get_db)
+):
+    """Global WebSocket endpoint for real-time updates across all workshops."""
+    # Verify token if provided
+    if token:
+        user = await verify_websocket_token(token)
+        if not user:
+            await websocket.close(code=1008, reason="Invalid token")
+            return
+    
+    await manager.connect_global(websocket)
+    
+    try:
+        # Send initial connection confirmation
+        await manager.send_personal_message(
+            json.dumps({
+                "type": "connection",
+                "status": "connected",
+                "global": True,
+                "timestamp": datetime.utcnow().isoformat()
+            }),
+            websocket
+        )
+        
+        # Keep connection alive and handle incoming messages
+        while True:
+            data = await websocket.receive_text()
+            message = json.loads(data)
+            
+            # Handle different message types
+            if message.get("type") == "ping":
+                await manager.send_personal_message(
+                    json.dumps({"type": "pong", "timestamp": datetime.utcnow().isoformat()}),
+                    websocket
+                )
+                    
+    except WebSocketDisconnect:
+        manager.disconnect(websocket)
+    except Exception as e:
+        logger.error(f"Global WebSocket error: {e}")
         manager.disconnect(websocket)
         await websocket.close(code=1011, reason="Internal error")

@@ -2,6 +2,7 @@ import axios, { AxiosResponse, AxiosError } from 'axios';
 import { 
   Workshop, 
   WorkshopSummary, 
+  WorkshopTemplate,
   Attendee, 
   AttendeeCredentials,
   DeploymentLog,
@@ -166,6 +167,19 @@ export const settingsApi = {
   
   setLoginPrefixConfig: async (config: {login_prefix: string; export_format: string}): Promise<void> => {
     await apiClient.post('/api/settings/login-prefix', config);
+  },
+};
+
+// Template API
+export const templateApi = {
+  listTemplates: async (): Promise<WorkshopTemplate[]> => {
+    const response: AxiosResponse<WorkshopTemplate[]> = await apiClient.get('/api/templates');
+    return response.data;
+  },
+  
+  getTemplate: async (name: string): Promise<WorkshopTemplate> => {
+    const response: AxiosResponse<WorkshopTemplate> = await apiClient.get(`/api/templates/${name}`);
+    return response.data;
   },
 };
 

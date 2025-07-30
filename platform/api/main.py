@@ -8,8 +8,8 @@ from typing import Optional
 from core.config import settings
 from core.database import engine, Base
 from core.celery_app import celery_app
-from api.routes import workshops, attendees, deployments, auth, health, internal, config_routes
-from api.websocket import websocket_endpoint, manager
+from api.routes import workshops, attendees, deployments, auth, health, internal, config_routes, templates
+from api.websocket import websocket_endpoint, global_websocket_endpoint, manager
 from core.logging import setup_logging
 
 # Setup logging
@@ -57,6 +57,7 @@ app.include_router(workshops.router, prefix="/api/workshops", tags=["workshops"]
 app.include_router(attendees.router, prefix="/api/attendees", tags=["attendees"])
 app.include_router(deployments.router, prefix="/api/deployments", tags=["deployments"])
 app.include_router(config_routes.router, prefix="/api/settings", tags=["settings"])
+app.include_router(templates.router, prefix="/api/templates", tags=["templates"])
 app.include_router(internal.router, prefix="/internal", tags=["internal"])
 
 # Root endpoint
@@ -68,10 +69,14 @@ async def root():
         "status": "running"
     }
 
-# WebSocket endpoint
+# WebSocket endpoints
 @app.websocket("/ws/{workshop_id}")
 async def websocket_route(websocket: WebSocket, workshop_id: str, token: str = None):
     await websocket_endpoint(websocket, workshop_id, token)
+
+@app.websocket("/ws/global")
+async def global_websocket_route(websocket: WebSocket, token: str = None):
+    await global_websocket_endpoint(websocket, token)
 
 # Make celery available for tasks
 celery = celery_app

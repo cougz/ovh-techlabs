@@ -13,6 +13,7 @@
 @layer components {
   .btn {
     @apply inline-flex items-center justify-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-offset-2 transition-colors duration-200;
+    box-sizing: border-box;
   }
 
   .btn-primary {
@@ -56,11 +57,11 @@
   }
 
   .card {
-    @apply bg-white overflow-hidden shadow rounded-lg dark:bg-slate-800 dark:text-white dark:border-2 dark:border-slate-600;
+    @apply bg-white overflow-hidden shadow rounded-lg border-2 border-transparent dark:bg-slate-800 dark:text-white dark:border-slate-600;
   }
 
   .card-header {
-    @apply px-4 py-5 border-b border-gray-200 sm:px-6 dark:bg-slate-700 dark:border-b-2 dark:border-slate-600;
+    @apply px-4 py-5 border-b-2 border-gray-200 sm:px-6 dark:bg-slate-700 dark:border-slate-600;
   }
 
   .card-body {
@@ -162,9 +163,8 @@
     box-sizing: border-box;
   }
 
-  /* Enhanced hover states for better UX */
+  /* Enhanced hover states for better UX - removed transform to prevent layout shift */
   .dark .btn-secondary:hover {
-    transform: translateY(-1px);
     box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
   }
 
@@ -196,7 +196,6 @@
   /* Enhanced dark mode visibility - critical high contrast styles */
   .dark .text-center {
     background-color: #1e293b !important; /* slate-800 - consistent with cards */
-    border: 2px solid #475569 !important; /* slate-600 - visible border */
   }
 
   .dark h3 {
@@ -213,8 +212,15 @@
   }
 
   /* Prevent layout shifts during theme transitions */
+  *, *::before, *::after {
+    transition-property: color, background-color, border-color, box-shadow, opacity;
+    transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
+    transition-duration: 150ms;
+  }
+  
+  /* Prevent transform and positioning changes during theme transitions */
   .dark *, .dark *::before, .dark *::after {
-    transition-property: color, background-color, border-color;
+    transition-property: color, background-color, border-color, box-shadow, opacity;
     transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
     transition-duration: 150ms;
   }
@@ -223,6 +229,9 @@
   .theme-switch {
     box-sizing: border-box;
     flex-shrink: 0;
+    position: relative;
+    width: var(--container-width);
+    height: var(--container-height);
   }
 
   /* Prevent CLS (Cumulative Layout Shift) during theme toggle */
@@ -246,13 +255,25 @@
   background: #f1f1f1;
 }
 
+.dark ::-webkit-scrollbar-track {
+  background: #374151;
+}
+
 ::-webkit-scrollbar-thumb {
   background: #c1c1c1;
   border-radius: 3px;
 }
 
+.dark ::-webkit-scrollbar-thumb {
+  background: #6b7280;
+}
+
 ::-webkit-scrollbar-thumb:hover {
   background: #a8a8a8;
+}
+
+.dark ::-webkit-scrollbar-thumb:hover {
+  background: #9ca3af;
 }
 
 /* Loading animation */
@@ -282,15 +303,17 @@
   animation: fadeIn 0.3s ease-out;
 }
 
-/* Dark mode main container styling - prevent layout shift */
-.dark .animate-fade-in {
-  @apply bg-slate-900 border border-slate-700 shadow-2xl;
+/* Consistent container styling - prevent layout shift */
+.animate-fade-in {
   box-sizing: border-box;
 }
 
-/* Dark mode header section styling */
-.dark .mb-8 {
-  @apply border-b-2 border-slate-600;
+.dark .animate-fade-in {
+  @apply bg-slate-900 shadow-2xl;
+}
+
+/* Consistent header section styling */
+.mb-8 {
   box-sizing: border-box;
 }
 
@@ -506,11 +529,13 @@
 }
 
 .theme-switch__checkbox:checked + .theme-switch__container .theme-switch__circle-container:hover {
-  left: calc(100% - var(--circle-container-offset) - var(--circle-container-diameter) - 0.187em)
+  left: calc(100% - var(--circle-container-offset) - var(--circle-container-diameter));
+  transform: translateX(-0.187em);
 }
 
 .theme-switch__circle-container:hover {
-  left: calc(var(--circle-container-offset) + 0.187em);
+  left: var(--circle-container-offset);
+  transform: translateX(0.187em);
 }
 
 .theme-switch__checkbox:checked + .theme-switch__container .theme-switch__moon {

@@ -129,7 +129,7 @@ const DropdownMenu: React.FC<DropdownMenuProps> = ({
   const menu = (
     <div
       ref={menuRef}
-      className={`fixed bg-white rounded-md shadow-lg border border-gray-200 z-50 min-w-48 ${className}`}
+      className={`fixed bg-white dark:bg-slate-800 rounded-md shadow-lg border border-gray-200 dark:border-slate-600 z-50 min-w-48 ${className}`}
       style={{
         top: position.top,
         left: position.left,

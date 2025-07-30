@@ -50,8 +50,8 @@ class ErrorBoundary extends React.Component<
       return (
         this.props.fallback || (
           <div className="p-8 text-center">
-            <div className="text-red-500 text-lg font-semibold">Something went wrong</div>
-            <div className="text-gray-600 mt-2">
+            <div className="text-red-500 dark:text-red-400 text-lg font-semibold">Something went wrong</div>
+            <div className="text-gray-600 dark:text-gray-300 mt-2">
               {this.state.error?.message || 'An error occurred in the workshop detail page'}
             </div>
             <button
@@ -470,9 +470,9 @@ const WorkshopDetail: React.FC = () => {
         <div className="card">
           <div className="card-body">
             <div className="text-center py-8">
-              <XMarkIcon className="mx-auto h-12 w-12 text-danger-400" />
-              <h3 className="mt-2 text-sm font-medium text-gray-900">Invalid Workshop ID</h3>
-              <p className="mt-1 text-sm text-gray-500">
+              <XMarkIcon className="mx-auto h-12 w-12 text-danger-400 dark:text-danger-300" />
+              <h3 className="mt-2 text-sm font-medium text-gray-900 dark:text-gray-100">Invalid Workshop ID</h3>
+              <p className="mt-1 text-sm text-gray-500 dark:text-gray-300">
                 No workshop ID provided in the URL.
               </p>
               <div className="mt-6">
@@ -513,15 +513,15 @@ const WorkshopDetail: React.FC = () => {
             <ArrowLeftIcon className="h-4 w-4 mr-1" />
             Back to Workshops
           </Link>
-          <h1 className="text-2xl font-bold text-gray-900">Workshop Not Found</h1>
+          <h1 className="text-2xl font-bold text-gray-900 dark:text-gray-100">Workshop Not Found</h1>
         </div>
         
         <div className="card">
           <div className="card-body">
             <div className="text-center py-8">
-              <XMarkIcon className="mx-auto h-12 w-12 text-danger-400" />
-              <h3 className="mt-2 text-sm font-medium text-gray-900">Workshop not found</h3>
-              <p className="mt-1 text-sm text-gray-500">
+              <XMarkIcon className="mx-auto h-12 w-12 text-danger-400 dark:text-danger-300" />
+              <h3 className="mt-2 text-sm font-medium text-gray-900 dark:text-gray-100">Workshop not found</h3>
+              <p className="mt-1 text-sm text-gray-500 dark:text-gray-300">
                 The workshop you're looking for doesn't exist or has been deleted.
               </p>
               <div className="mt-6">
@@ -639,13 +639,13 @@ const WorkshopDetail: React.FC = () => {
             <div className="flex-1 min-w-0">
               <div className="flex items-center space-x-3">
                 {getStatusIcon(getEffectiveStatus())}
-                <h1 className="text-2xl font-bold text-gray-900 truncate">{workshop.name}</h1>
+                <h1 className="text-2xl font-bold text-gray-900 dark:text-gray-100 truncate">{workshop.name}</h1>
                 <span className={`${getStatusClass(getEffectiveStatus())} whitespace-nowrap flex-shrink-0`}>
                   {getEffectiveStatus()}
                 </span>
               </div>
               {workshop.description && (
-                <p className="mt-2 text-gray-600">{workshop.description}</p>
+                <p className="mt-2 text-gray-600 dark:text-gray-300">{workshop.description}</p>
               )}
             </div>
             
@@ -691,8 +691,8 @@ const WorkshopDetail: React.FC = () => {
               <div className="flex items-center">
                 <CalendarIcon className="h-8 w-8 text-primary-500 mr-3" />
                 <div>
-                  <h3 className="text-lg font-medium text-gray-900">Schedule</h3>
-                  <p className="text-sm text-gray-600">
+                  <h3 className="text-lg font-medium text-gray-900 dark:text-gray-100">Schedule</h3>
+                  <p className="text-sm text-gray-600 dark:text-gray-300">
                     {formatDate(workshop.start_date)}
                     <br />
                     <span className="text-xs">to</span> {formatDate(workshop.end_date)}
@@ -707,14 +707,14 @@ const WorkshopDetail: React.FC = () => {
               <div className="flex items-center">
                 <UserGroupIcon className="h-8 w-8 text-success-500 mr-3" />
                 <div>
-                  <h3 className="text-lg font-medium text-gray-900">Attendees</h3>
-                  <p className="text-sm text-gray-600">
+                  <h3 className="text-lg font-medium text-gray-900 dark:text-gray-100">Attendees</h3>
+                  <p className="text-sm text-gray-600 dark:text-gray-300">
                     {attendees.length} total
                     {activeAttendees > 0 && (
-                      <span className="text-success-600"> • {activeAttendees} active</span>
+                      <span className="text-success-600 dark:text-success-400"> • {activeAttendees} active</span>
                     )}
                     {failedAttendees > 0 && (
-                      <span className="text-danger-600"> • {failedAttendees} failed</span>
+                      <span className="text-danger-600 dark:text-danger-400"> • {failedAttendees} failed</span>
                     )}
                   </p>
                 </div>
@@ -727,8 +727,8 @@ const WorkshopDetail: React.FC = () => {
               <div className="flex items-center">
                 <CheckCircleIcon className="h-8 w-8 text-warning-500 mr-3" />
                 <div>
-                  <h3 className="text-lg font-medium text-gray-900">Status</h3>
-                  <p className="text-sm text-gray-600">
+                  <h3 className="text-lg font-medium text-gray-900 dark:text-gray-100">Status</h3>
+                  <p className="text-sm text-gray-600 dark:text-gray-300">
                     {getEffectiveStatusMessage()}
                   </p>
                 </div>
@@ -740,13 +740,13 @@ const WorkshopDetail: React.FC = () => {
             <div className="card">
               <div className="card-body">
                 <div className="flex items-center">
-                  <ExclamationTriangleIcon className="h-8 w-8 text-amber-500 mr-3" />
+                  <ClockIcon className="h-8 w-8 text-blue-500 mr-3" />
                   <div className="flex-1">
-                    <h3 className="text-lg font-medium text-gray-900">Cleanup Schedule</h3>
-                    <p className="text-sm text-gray-600">
+                    <h3 className="text-lg font-medium text-gray-900 dark:text-gray-100">Cleanup Schedule</h3>
+                    <p className="text-sm text-gray-600 dark:text-gray-300">
                       Environment deletion
                       <br />
-                      <span className="text-xs font-medium text-amber-600">
+                      <span className="text-sm font-medium text-blue-600 dark:text-blue-400">
                         {formatDeletionDate(workshop.deletion_scheduled_at)}
                       </span>
                     </p>
@@ -767,8 +767,8 @@ const WorkshopDetail: React.FC = () => {
                 <div className="flex items-center">
                   <CalendarIcon className="h-8 w-8 text-gray-400 mr-3" />
                   <div className="flex-1">
-                    <h3 className="text-lg font-medium text-gray-900">Cleanup Schedule</h3>
-                    <p className="text-sm text-gray-600">
+                    <h3 className="text-lg font-medium text-gray-900 dark:text-gray-100">Cleanup Schedule</h3>
+                    <p className="text-sm text-gray-600 dark:text-gray-300">
                       No automatic cleanup scheduled
                     </p>
                   </div>
@@ -789,7 +789,7 @@ const WorkshopDetail: React.FC = () => {
         <div className="card">
           <div className="card-header">
             <div className="flex justify-between items-center">
-              <h3 className="text-lg leading-6 font-medium text-gray-900">
+              <h3 className="text-lg leading-6 font-medium text-gray-900 dark:text-gray-100">
                 Attendees ({attendees.length})
               </h3>
               <div className="flex space-x-3">
@@ -815,31 +815,31 @@ const WorkshopDetail: React.FC = () => {
           <div className="card-body">
             {/* Add Attendee Form */}
             {showAddAttendee && (
-              <div className="mb-6 p-4 bg-gray-50 rounded-lg">
+              <div className="mb-6 p-4 bg-gray-50 dark:bg-slate-700 rounded-lg">
                 <form onSubmit={handleAddAttendee} className="space-y-4">
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-2">
+                      <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                         Username *
                       </label>
                       <input
                         type="text"
                         value={newAttendee.username}
                         onChange={(e) => setNewAttendee(prev => ({ ...prev, username: e.target.value }))}
-                        className="block w-full rounded-md border-gray-300 shadow-sm focus:border-primary-500 focus:ring-primary-500 sm:text-sm"
+                        className="block w-full rounded-md border-gray-300 dark:border-slate-600 dark:bg-slate-800 dark:text-gray-100 shadow-sm focus:border-primary-500 focus:ring-primary-500 sm:text-sm"
                         placeholder="e.g., john-doe"
                         required
                       />
                     </div>
                     <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-2">
+                      <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                         Email *
                       </label>
                       <input
                         type="email"
                         value={newAttendee.email}
                         onChange={(e) => setNewAttendee(prev => ({ ...prev, email: e.target.value }))}
-                        className="block w-full rounded-md border-gray-300 shadow-sm focus:border-primary-500 focus:ring-primary-500 sm:text-sm"
+                        className="block w-full rounded-md border-gray-300 dark:border-slate-600 dark:bg-slate-800 dark:text-gray-100 shadow-sm focus:border-primary-500 focus:ring-primary-500 sm:text-sm"
                         placeholder="john-doe@example.com"
                         required
                       />
@@ -883,28 +883,28 @@ const WorkshopDetail: React.FC = () => {
               </div>
             ) : attendees.length === 0 ? (
               <div className="text-center py-8">
-                <UserGroupIcon className="mx-auto h-12 w-12 text-gray-400" />
-                <h3 className="mt-2 text-sm font-medium text-gray-900">No attendees</h3>
-                <p className="mt-1 text-sm text-gray-500">
+                <UserGroupIcon className="mx-auto h-12 w-12 text-gray-400 dark:text-gray-300" />
+                <h3 className="mt-2 text-sm font-medium text-gray-900 dark:text-gray-100">No attendees</h3>
+                <p className="mt-1 text-sm text-gray-500 dark:text-gray-300">
                   Add attendees to get started with your workshop.
                 </p>
               </div>
             ) : (
               <div className="space-y-4">
                 {attendees.map((attendee) => (
-                  <div key={attendee.id} className="flex items-center justify-between p-4 border border-gray-200 rounded-lg">
+                  <div key={attendee.id} className="flex items-center justify-between p-4 border border-gray-200 dark:border-slate-600 rounded-lg">
                     <div className="flex items-center space-x-4">
                       {getStatusIcon(attendee.status)}
                       <div className="flex-1">
                         <div className="flex items-center space-x-2">
-                          <h4 className="text-sm font-medium text-gray-900">{attendee.username}</h4>
+                          <h4 className="text-sm font-medium text-gray-900 dark:text-gray-100">{attendee.username}</h4>
                           <span className={`${getStatusClass(attendee.status)} text-xs`}>
                             {attendee.status}
                           </span>
                         </div>
-                        <p className="text-sm text-gray-500">{attendee.email}</p>
+                        <p className="text-sm text-gray-500 dark:text-gray-400">{attendee.email}</p>
                         {attendee.ovh_project_id && (
-                          <p className="text-xs text-gray-400">
+                          <p className="text-xs text-gray-400 dark:text-gray-500">
                             Project: {attendee.ovh_project_id}
                           </p>
                         )}
@@ -919,7 +919,7 @@ const WorkshopDetail: React.FC = () => {
                         {/* Real-time deployment progress */}
                         {deploymentProgress[attendee.id] && (
                           <div className="mt-2">
-                            <div className="flex items-center justify-between text-xs text-gray-600 mb-1">
+                            <div className="flex items-center justify-between text-xs text-gray-600 dark:text-gray-400 mb-1">
                               <span>{deploymentProgress[attendee.id].step}</span>
                               <span>{deploymentProgress[attendee.id].progress}%</span>
                             </div>

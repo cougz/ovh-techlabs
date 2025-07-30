@@ -8,13 +8,13 @@ from core.database import get_db
 from models.workshop import Workshop
 from models.attendee import Attendee
 from api.routes.auth import get_current_user
-from schemas.workshop import WorkshopCreate, WorkshopUpdate, WorkshopResponse, WorkshopSummary
+from schemas.workshop import WorkshopCreate, WorkshopCreateWithTemplate, WorkshopUpdate, WorkshopResponse, WorkshopSummary
 
 router = APIRouter()
 
 @router.post("/", response_model=WorkshopResponse)
 async def create_workshop(
-    workshop: WorkshopCreate,
+    workshop: WorkshopCreateWithTemplate,
     db: Session = Depends(get_db),
     current_user: str = Depends(get_current_user)
 ):
@@ -35,6 +35,8 @@ async def create_workshop(
         description=workshop.description,
         start_date=workshop.start_date,
         end_date=workshop.end_date,
+        timezone=workshop.timezone,
+        template=workshop.template,
         deletion_scheduled_at=deletion_scheduled_at
     )
     

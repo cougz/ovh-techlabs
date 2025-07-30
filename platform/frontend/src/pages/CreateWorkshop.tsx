@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { useMutation, useQueryClient } from 'react-query';
+import { useMutation, useQuery, useQueryClient } from 'react-query';
 import {
   CalendarIcon,
   ClockIcon,
@@ -9,15 +9,20 @@ import {
   UserGroupIcon
 } from '@heroicons/react/24/outline';
 
-import { workshopApi, attendeeApi } from '../services/api';
-import { CreateWorkshopRequest, CreateAttendeeRequest } from '../types';
+import { workshopApi, attendeeApi, templateApi } from '../services/api';
+import { CreateWorkshopRequest, CreateAttendeeRequest, WorkshopTemplateName } from '../types';
+import TemplateDropdown from '../components/TemplateDropdown';
 import { parseCsvAttendees, validateAttendeeData, CsvAttendeeData, CsvParseError, CsvValidationError } from '../utils/csvImport';
+import { WorkshopTemplateNameSchema } from '../types/schemas';
+import { z } from 'zod';
 
 interface FormData {
   name: string;
   description: string;
   start_date: string;
   end_date: string;
+  timezone: string;
+  template: WorkshopTemplateName;
 }
 
 interface FormErrors {
@@ -25,6 +30,8 @@ interface FormErrors {
   description?: string;
   start_date?: string;
   end_date?: string;
+  timezone?: string;
+  template?: string;
   general?: string;
   csv?: string;
 }
@@ -40,11 +47,23 @@ const CreateWorkshop: React.FC = () => {
   const navigate = useNavigate();
   const queryClient = useQueryClient();
   
+  // Load available templates
+  const {
+    data: templates = [],
+    isLoading: templatesLoading,
+    error: templatesError
+  } = useQuery('templates', templateApi.listTemplates, {
+    retry: 2,
+    staleTime: 5 * 60 * 1000, // 5 minutes
+  });
+  
   const [formData, setFormData] = useState<FormData>({
     name: '',
     description: '',
     start_date: '',
-    end_date: ''
+    end_date: '',
+    timezone: 'UTC',
+    template: 'Generic'
   });
   
   const [errors, setErrors] = useState<FormErrors>({});
@@ -164,14 +183,18 @@ const CreateWorkshop: React.FC = () => {
   const validateForm = (): boolean => {
     const newErrors: FormErrors = {};
     
+    // Enhanced name validation with additional checks
     if (!formData.name.trim()) {
       newErrors.name = 'Workshop name is required';
     } else if (formData.name.length < 3) {
       newErrors.name = 'Workshop name must be at least 3 characters';
     } else if (formData.name.length > 100) {
       newErrors.name = 'Workshop name must be less than 100 characters';
+    } else if (!/^[a-zA-Z0-9\s\-_.()]+$/.test(formData.name)) {
+      newErrors.name = 'Workshop name contains invalid characters';
     }
     
+    // Enhanced description validation
     if (formData.description && formData.description.length > 500) {
       newErrors.description = 'Description must be less than 500 characters';
     }
@@ -184,28 +207,62 @@ const CreateWorkshop: React.FC = () => {
       newErrors.end_date = 'End date is required';
     }
     
+    // Template validation using Zod schema
+    if (!formData.template) {
+      newErrors.template = 'Template is required';
+    } else {
+      try {
+        WorkshopTemplateNameSchema.parse(formData.template);
+      } catch (error) {
+        newErrors.template = 'Invalid template selection';
+      }
+    }
+    
+    // Enhanced date validation with timezone awareness
     if (formData.start_date && formData.end_date) {
       const startDate = new Date(formData.start_date);
       const endDate = new Date(formData.end_date);
       const now = new Date();
       
-      if (startDate < now) {
+      // Validate date objects are valid
+      if (isNaN(startDate.getTime())) {
+        newErrors.start_date = 'Invalid start date format';
+      } else if (startDate < new Date(now.getTime() - 5 * 60 * 1000)) { // Allow 5 minutes buffer
         newErrors.start_date = 'Start date cannot be in the past';
       }
       
-      if (endDate <= startDate) {
+      if (isNaN(endDate.getTime())) {
+        newErrors.end_date = 'Invalid end date format';
+      } else if (endDate <= startDate) {
         newErrors.end_date = 'End date must be after start date';
       }
       
-      const duration = endDate.getTime() - startDate.getTime();
-      const hours = duration / (1000 * 60 * 60);
-      
-      if (hours < 1) {
-        newErrors.end_date = 'Workshop must be at least 1 hour long';
+      // Enhanced duration validation
+      if (!isNaN(startDate.getTime()) && !isNaN(endDate.getTime())) {
+        const duration = endDate.getTime() - startDate.getTime();
+        const hours = duration / (1000 * 60 * 60);
+        
+        if (hours < 0.5) {
+          newErrors.end_date = 'Workshop must be at least 30 minutes long';
+        } else if (hours > 720) { // 30 days
+          newErrors.end_date = 'Workshop cannot be longer than 30 days';
+        }
+        
+        // Validate workshop doesn't span too many days for practical reasons
+        const days = hours / 24;
+        if (days > 7) {
+          newErrors.end_date = 'Workshops longer than 7 days may cause resource management issues';
+        }
       }
-      
-      if (hours > 720) { // 30 days
-        newErrors.end_date = 'Workshop cannot be longer than 30 days';
+    }
+    
+    // Timezone validation
+    if (!formData.timezone) {
+      newErrors.timezone = 'Timezone is required';
+    } else {
+      const validTimezones = ['UTC', 'Europe/Madrid', 'Asia/Kolkata', 'America/New_York', 'Europe/London'];
+      if (!validTimezones.includes(formData.timezone)) {
+        newErrors.timezone = 'Invalid timezone selection';
       }
     }
     
@@ -237,7 +294,9 @@ const CreateWorkshop: React.FC = () => {
       name: formData.name.trim(),
       description: formData.description.trim() || undefined,
       start_date: new Date(formData.start_date).toISOString(),
-      end_date: new Date(formData.end_date).toISOString()
+      end_date: new Date(formData.end_date).toISOString(),
+      timezone: formData.timezone,
+      template: formData.template
     };
     
     createWorkshopMutation.mutate(workshopData);
@@ -317,14 +376,14 @@ const CreateWorkshop: React.FC = () => {
                   id="name"
                   value={formData.name}
                   onChange={(e) => handleInputChange('name', e.target.value)}
-                  className={`block w-full rounded-md border-gray-300 shadow-sm focus:border-primary-500 focus:ring-primary-500 sm:text-sm ${
+                  className={`block w-full rounded-md border-gray-300 dark:border-slate-600 dark:bg-slate-700 dark:text-gray-100 shadow-sm focus:border-primary-500 focus:ring-primary-500 sm:text-sm ${
                     errors.name ? 'border-danger-300 focus:border-danger-500 focus:ring-danger-500' : ''
                   }`}
                   placeholder="e.g., Kubernetes Fundamentals Workshop"
                   maxLength={100}
                 />
                 {errors.name && (
-                  <p className="mt-2 text-sm text-danger-600">{errors.name}</p>
+                  <p className="mt-2 text-sm text-danger-600 dark:text-danger-400">{errors.name}</p>
                 )}
                 <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">
                   Choose a descriptive name for your workshop
@@ -341,19 +400,37 @@ const CreateWorkshop: React.FC = () => {
                   rows={4}
                   value={formData.description}
                   onChange={(e) => handleInputChange('description', e.target.value)}
-                  className={`block w-full rounded-md border-gray-300 shadow-sm focus:border-primary-500 focus:ring-primary-500 sm:text-sm ${
+                  className={`block w-full rounded-md border-gray-300 dark:border-slate-600 dark:bg-slate-700 dark:text-gray-100 shadow-sm focus:border-primary-500 focus:ring-primary-500 sm:text-sm ${
                     errors.description ? 'border-danger-300 focus:border-danger-500 focus:ring-danger-500' : ''
                   }`}
                   placeholder="Optional description of the workshop content, objectives, and target audience..."
                   maxLength={500}
                 />
                 {errors.description && (
-                  <p className="mt-2 text-sm text-danger-600">{errors.description}</p>
+                  <p className="mt-2 text-sm text-danger-600 dark:text-danger-400">{errors.description}</p>
                 )}
                 <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">
                   {formData.description.length}/500 characters
                 </p>
               </div>
+            </div>
+          </div>
+
+          <div className="card">
+            <div className="card-header">
+              <h3 className="text-lg font-medium text-gray-900 dark:text-gray-100">Workshop Template</h3>
+            </div>
+            <div className="card-body">
+              <TemplateDropdown
+                templates={templates}
+                selectedTemplate={formData.template}
+                onTemplateChange={(template) => handleInputChange('template', template)}
+                isLoading={templatesLoading}
+                error={templatesError ? String(templatesError) : null}
+              />
+              {errors.template && (
+                <p className="mt-2 text-sm text-danger-600 dark:text-danger-400">{errors.template}</p>
+              )}
             </div>
           </div>
 
@@ -375,13 +452,13 @@ const CreateWorkshop: React.FC = () => {
                       id="start_date"
                       value={formData.start_date}
                       onChange={(e) => handleInputChange('start_date', e.target.value)}
-                      className={`block w-full pl-10 rounded-md border-gray-300 shadow-sm focus:border-primary-500 focus:ring-primary-500 sm:text-sm ${
+                      className={`block w-full pl-10 rounded-md border-gray-300 dark:border-slate-600 dark:bg-slate-700 dark:text-gray-100 shadow-sm focus:border-primary-500 focus:ring-primary-500 sm:text-sm ${
                         errors.start_date ? 'border-danger-300 focus:border-danger-500 focus:ring-danger-500' : ''
                       }`}
                     />
                   </div>
                   {errors.start_date && (
-                    <p className="mt-2 text-sm text-danger-600">{errors.start_date}</p>
+                    <p className="mt-2 text-sm text-danger-600 dark:text-danger-400">{errors.start_date}</p>
                   )}
                 </div>
 
@@ -397,25 +474,25 @@ const CreateWorkshop: React.FC = () => {
                       id="end_date"
                       value={formData.end_date}
                       onChange={(e) => handleInputChange('end_date', e.target.value)}
-                      className={`block w-full pl-10 rounded-md border-gray-300 shadow-sm focus:border-primary-500 focus:ring-primary-500 sm:text-sm ${
+                      className={`block w-full pl-10 rounded-md border-gray-300 dark:border-slate-600 dark:bg-slate-700 dark:text-gray-100 shadow-sm focus:border-primary-500 focus:ring-primary-500 sm:text-sm ${
                         errors.end_date ? 'border-danger-300 focus:border-danger-500 focus:ring-danger-500' : ''
                       }`}
                     />
                   </div>
                   {errors.end_date && (
-                    <p className="mt-2 text-sm text-danger-600">{errors.end_date}</p>
+                    <p className="mt-2 text-sm text-danger-600 dark:text-danger-400">{errors.end_date}</p>
                   )}
                 </div>
               </div>
 
-              <div className="bg-primary-50 border border-primary-200 rounded-md p-4">
+              <div className="bg-primary-50 dark:bg-slate-800 border border-primary-200 dark:border-slate-600 rounded-md p-4">
                 <div className="flex">
-                  <InformationCircleIcon className="h-5 w-5 text-primary-400 mr-2 mt-0.5" />
+                  <InformationCircleIcon className="h-5 w-5 text-primary-400 dark:text-primary-300 mr-2 mt-0.5" />
                   <div>
-                    <h4 className="text-sm font-medium text-primary-800">Important Notes</h4>
-                    <ul className="text-sm text-primary-700 mt-1 list-disc list-inside space-y-1">
+                    <h4 className="text-sm font-medium text-primary-800 dark:text-primary-200">Important Notes</h4>
+                    <ul className="text-sm text-primary-700 dark:text-primary-300 mt-1 list-disc list-inside space-y-1">
                       <li>Workshop resources will be automatically deployed when the workshop starts</li>
-                      <li>All resources will be cleaned up 72 hours after the workshop ends</li>
+                      <li>All resources will be cleaned up 1 hour after the workshop ends</li>
                       <li>Attendees can be added after creating the workshop</li>
                       <li>You can manually deploy or cleanup resources at any time</li>
                     </ul>
@@ -482,13 +559,13 @@ const CreateWorkshop: React.FC = () => {
                       rows={8}
                       value={csvData}
                       onChange={(e) => handleCsvDataChange(e.target.value)}
-                      className={`block w-full rounded-md border-gray-300 shadow-sm focus:border-primary-500 focus:ring-primary-500 sm:text-sm font-mono ${
+                      className={`block w-full rounded-md border-gray-300 dark:border-slate-600 dark:bg-slate-700 dark:text-gray-100 shadow-sm focus:border-primary-500 focus:ring-primary-500 sm:text-sm font-mono ${
                         errors.csv || csvErrors.length > 0 ? 'border-danger-300 focus:border-danger-500 focus:ring-danger-500' : ''
                       }`}
                       placeholder="Max-Mustermann,max-mustermann@techlab.ovh&#10;John-Doe,john-doe@example.com&#10;Jane-Smith,jane-smith@example.com"
                     />
                     {errors.csv && (
-                      <p className="mt-2 text-sm text-danger-600">{errors.csv}</p>
+                      <p className="mt-2 text-sm text-danger-600 dark:text-danger-400">{errors.csv}</p>
                     )}
                     <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">
                       Format: username,email (one attendee per line). {parsedAttendees.length > 0 && `${parsedAttendees.length} valid attendees found.`}
@@ -497,12 +574,12 @@ const CreateWorkshop: React.FC = () => {
 
                   {/* CSV Errors */}
                   {csvErrors.length > 0 && (
-                    <div className="bg-danger-50 border border-danger-200 rounded-md p-4">
+                    <div className="bg-danger-50 dark:bg-red-900/20 border border-danger-200 dark:border-red-800 rounded-md p-4">
                       <div className="flex">
-                        <ExclamationTriangleIcon className="h-5 w-5 text-danger-400 mr-2 mt-0.5 flex-shrink-0" />
+                        <ExclamationTriangleIcon className="h-5 w-5 text-danger-400 dark:text-danger-300 mr-2 mt-0.5 flex-shrink-0" />
                         <div className="w-full">
-                          <h4 className="text-sm font-medium text-danger-800">CSV Validation Errors</h4>
-                          <div className="mt-2 text-sm text-danger-700">
+                          <h4 className="text-sm font-medium text-danger-800 dark:text-danger-200">CSV Validation Errors</h4>
+                          <div className="mt-2 text-sm text-danger-700 dark:text-danger-300">
                             <ul className="list-disc list-inside space-y-1">
                               {csvErrors.map((error, index) => (
                                 <li key={index}>
@@ -520,17 +597,17 @@ const CreateWorkshop: React.FC = () => {
 
                   {/* Bulk Import Progress */}
                   {bulkImportProgress.isImporting && (
-                    <div className="bg-primary-50 border border-primary-200 rounded-md p-4">
+                    <div className="bg-primary-50 dark:bg-slate-800 border border-primary-200 dark:border-slate-600 rounded-md p-4">
                       <div className="flex">
-                        <UserGroupIcon className="h-5 w-5 text-primary-400 mr-2 mt-0.5" />
+                        <UserGroupIcon className="h-5 w-5 text-primary-400 dark:text-primary-300 mr-2 mt-0.5" />
                         <div>
-                          <h4 className="text-sm font-medium text-primary-800">Creating Attendees</h4>
-                          <p className="text-sm text-primary-700 mt-1">
+                          <h4 className="text-sm font-medium text-primary-800 dark:text-primary-200">Creating Attendees</h4>
+                          <p className="text-sm text-primary-700 dark:text-primary-300 mt-1">
                             Progress: {bulkImportProgress.completed} of {bulkImportProgress.total} attendees created
                           </p>
-                          <div className="w-full bg-primary-200 rounded-full h-2 mt-2">
+                          <div className="w-full bg-primary-200 dark:bg-slate-600 rounded-full h-2 mt-2">
                             <div 
-                              className="bg-primary-600 h-2 rounded-full transition-all duration-300" 
+                              className="bg-primary-600 dark:bg-primary-500 h-2 rounded-full transition-all duration-300" 
                               style={{ width: `${(bulkImportProgress.completed / bulkImportProgress.total) * 100}%` }}
                             />
                           </div>
@@ -598,12 +675,12 @@ const CreateWorkshop: React.FC = () => {
                 </div>
               ) : (
                 /* Individual Attendee Section */
-                <div className="bg-primary-50 border border-primary-200 rounded-md p-4">
+                <div className="bg-primary-50 dark:bg-slate-800 border border-primary-200 dark:border-slate-600 rounded-md p-4">
                   <div className="flex">
-                    <InformationCircleIcon className="h-5 w-5 text-primary-400 mr-2 mt-0.5" />
+                    <InformationCircleIcon className="h-5 w-5 text-primary-400 dark:text-primary-300 mr-2 mt-0.5" />
                     <div>
-                      <h4 className="text-sm font-medium text-primary-800">Add Attendees Later</h4>
-                      <p className="text-sm text-primary-700 mt-1">
+                      <h4 className="text-sm font-medium text-primary-800 dark:text-primary-200">Add Attendees Later</h4>
+                      <p className="text-sm text-primary-700 dark:text-primary-300 mt-1">
                         You can add attendees individually after creating the workshop. Go to the workshop details page to manage attendees.
                       </p>
                     </div>

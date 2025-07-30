@@ -104,7 +104,7 @@ export const StatusIndicator: React.FC<StatusIndicatorProps> = ({
         />
       )}
       {showLabel && (
-        <span className={`${textSizeClass} font-medium`}>
+        <span className={`${textSizeClass} font-medium text-gray-900 dark:text-gray-100`}>
           {label}
         </span>
       )}

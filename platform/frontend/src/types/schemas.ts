@@ -15,6 +15,11 @@ export const WorkshopStatusSchema = z.enum([
   'deleting'
 ]);
 
+// Workshop template enum
+export const WorkshopTemplateNameSchema = z.enum([
+  'Generic'
+]);
+
 // Attendee status enum  
 export const AttendeeStatusSchema = z.enum([
   'planning',
@@ -91,11 +96,22 @@ export const LoginResponseSchema = z.object({
   token_type: NonEmptyStringSchema,
 });
 
+// Workshop template schema
+export const WorkshopTemplateSchema = z.object({
+  name: NonEmptyStringSchema,
+  description: NonEmptyStringSchema,
+  resources: z.array(NonEmptyStringSchema),
+  is_active: z.boolean(),
+  resource_config: z.record(z.any()).optional(),
+});
+
 export const CreateWorkshopRequestSchema = z.object({
   name: NonEmptyStringSchema,
   description: z.string().optional(),
   start_date: DateTimeSchema,
   end_date: DateTimeSchema,
+  timezone: NonEmptyStringSchema,
+  template: WorkshopTemplateNameSchema,
 });
 
 export const UpdateWorkshopRequestSchema = z.object({
@@ -138,6 +154,8 @@ export const UserSchema = z.object({
 export type Workshop = z.infer<typeof WorkshopSchema>;
 export type WorkshopSummary = z.infer<typeof WorkshopSummarySchema>;
 export type WorkshopStatus = z.infer<typeof WorkshopStatusSchema>;
+export type WorkshopTemplate = z.infer<typeof WorkshopTemplateSchema>;
+export type WorkshopTemplateName = z.infer<typeof WorkshopTemplateNameSchema>;
 export type Attendee = z.infer<typeof AttendeeSchema>;
 export type AttendeeStatus = z.infer<typeof AttendeeStatusSchema>;
 export type AttendeeCredentials = z.infer<typeof AttendeeCredentialsSchema>;
