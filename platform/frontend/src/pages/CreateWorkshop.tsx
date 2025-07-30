@@ -76,6 +76,7 @@ const CreateWorkshop: React.FC = () => {
     total: 0,
     errors: []
   });
+  const [cleanupDelay, setCleanupDelay] = useState<number>(1); // Default 1 hour
 
   const createWorkshopMutation = useMutation(
     (data: CreateWorkshopRequest) => workshopApi.createWorkshop(data),
@@ -337,6 +338,35 @@ const CreateWorkshop: React.FC = () => {
     }));
   }, []);
 
+  // Load cleanup delay from settings
+  React.useEffect(() => {
+    const loadCleanupDelay = () => {
+      try {
+        const savedSettings = localStorage.getItem('techlabs-settings');
+        if (savedSettings) {
+          const settings = JSON.parse(savedSettings);
+          if (settings.cleanupDelay && typeof settings.cleanupDelay === 'number') {
+            setCleanupDelay(settings.cleanupDelay);
+          }
+        }
+      } catch (error) {
+        console.error('Failed to load cleanup delay from settings:', error);
+      }
+    };
+
+    loadCleanupDelay();
+
+    // Listen for storage changes to update cleanup delay when settings change
+    const handleStorageChange = (e: StorageEvent) => {
+      if (e.key === 'techlabs-settings') {
+        loadCleanupDelay();
+      }
+    };
+
+    window.addEventListener('storage', handleStorageChange);
+    return () => window.removeEventListener('storage', handleStorageChange);
+  }, []);
+
   return (
     <div className="animate-fade-in">
       <div className="mb-8">
@@ -491,7 +521,7 @@ const CreateWorkshop: React.FC = () => {
                     <h4 className="text-sm font-medium text-primary-800 dark:text-primary-200">Important Notes</h4>
                     <ul className="text-sm text-primary-700 dark:text-primary-300 mt-1 list-disc list-inside space-y-1">
                       <li>Workshop resources will be automatically deployed when the workshop starts</li>
-                      <li>All resources will be cleaned up 1 hour after the workshop ends</li>
+                      <li>All resources will be cleaned up {cleanupDelay} {cleanupDelay === 1 ? 'hour' : 'hours'} after the workshop ends</li>
                       <li>Attendees can be added after creating the workshop</li>
                       <li>You can manually deploy or cleanup resources at any time</li>
                     </ul>
