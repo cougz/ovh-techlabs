@@ -17,7 +17,6 @@ yarn-error.log*
 .env.development.local
 .env.test.local
 .env.production.local
-CLAUDE.md
 
 # IDE files
 .vscode/
@@ -87,7 +86,6 @@ pids/
 *.pid.lock
 
 # Agent files
-CLAUDE.md
 .claude/
 
 # Temporary folders
