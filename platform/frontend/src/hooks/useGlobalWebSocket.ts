@@ -80,13 +80,13 @@ export const useGlobalWebSocket = ({
 
             case 'status_update':
               if (message.workshop_id && message.entity_type && message.entity_id && message.status) {
-                // Invalidate React Query cache to trigger re-fetch
-                queryClient.invalidateQueries(['attendees', message.workshop_id]);
-                queryClient.invalidateQueries(['workshop', message.workshop_id]);
+                // Force immediate refetch of React Query cache
+                queryClient.refetchQueries(['attendees', message.workshop_id]);
+                queryClient.refetchQueries(['workshop', message.workshop_id]);
                 
-                // Invalidate the workshops list query for Dashboard and WorkshopList
-                queryClient.invalidateQueries('workshops');
-                queryClient.invalidateQueries(['workshops']);
+                // Force immediate refetch of the workshops list query for Dashboard and WorkshopList
+                queryClient.refetchQueries('workshops');
+                queryClient.refetchQueries(['workshops']);
 
                 // Call callback with workshop_id
                 onStatusUpdate?.(message.workshop_id, message.entity_type, message.entity_id, message.status, message.details);
