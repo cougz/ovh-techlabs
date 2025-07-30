@@ -93,9 +93,9 @@ const Dashboard: React.FC = () => {
   }
 
   return (
-    <div className="animate-fade-in">
+    <div className="animate-fade-in dark:bg-slate-900 dark:border dark:border-slate-700 dark:shadow-2xl">
       {/* Header */}
-      <div className="mb-8">
+      <div className="mb-8 dark:border-b-2 dark:border-slate-600">
         <div className="flex justify-between items-center">
           <div>
             <h1 className="text-2xl font-bold text-gray-900 dark:text-gray-100">Dashboard</h1>
@@ -105,7 +105,7 @@ const Dashboard: React.FC = () => {
           </div>
           <Link
             to="/workshops/new"
-            className="btn-primary"
+            className="btn-primary dark:bg-primary-600 dark:hover:bg-primary-500 dark:border-primary-500 dark:shadow-lg dark:focus:ring-4 dark:focus:ring-primary-300"
           >
             <PlusIcon className="h-4 w-4 mr-2" />
             New Workshop
@@ -116,7 +116,7 @@ const Dashboard: React.FC = () => {
       {/* Stats */}
       <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-4 mb-12">
         {statCards.map((item) => (
-          <div key={item.name} className="card">
+          <div key={item.name} className="card dark:bg-slate-800 dark:border-2 dark:border-slate-600">
             <div className="card-body">
               <div className="flex items-center">
                 <div className="flex-shrink-0">
@@ -141,8 +141,8 @@ const Dashboard: React.FC = () => {
       </div>
 
       {/* Recent Workshops */}
-      <div className="card">
-        <div className="card-header">
+      <div className="card dark:bg-slate-800 dark:border-2 dark:border-slate-600">
+        <div className="card-header dark:bg-slate-700 dark:border-b-2 dark:border-slate-600">
           <div className="flex justify-between items-center">
             <h3 className="text-lg leading-6 font-medium text-gray-900 dark:text-gray-100">
               Recent Workshops

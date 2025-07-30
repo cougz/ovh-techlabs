@@ -30,13 +30,16 @@ const DarkModeToggle: React.FC = () => {
     const newDarkMode = e.target.checked;
     setIsDarkMode(newDarkMode);
     
-    if (newDarkMode) {
-      document.documentElement.classList.add('dark');
-      localStorage.setItem('theme', 'dark');
-    } else {
-      document.documentElement.classList.remove('dark');
-      localStorage.setItem('theme', 'light');
-    }
+    // Use requestAnimationFrame to prevent layout thrashing
+    requestAnimationFrame(() => {
+      if (newDarkMode) {
+        document.documentElement.classList.add('dark');
+        localStorage.setItem('theme', 'dark');
+      } else {
+        document.documentElement.classList.remove('dark');
+        localStorage.setItem('theme', 'light');
+      }
+    });
   };
 
   return (

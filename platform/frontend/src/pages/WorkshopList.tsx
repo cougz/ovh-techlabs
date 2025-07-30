@@ -84,8 +84,8 @@ const WorkshopList: React.FC = () => {
     return (
       <div className="animate-fade-in">
         <div className="mb-8">
-          <h1 className="text-2xl font-bold text-gray-900">Workshops</h1>
-          <p className="mt-1 text-sm text-gray-600">
+          <h1 className="text-2xl font-bold text-gray-900 dark:text-gray-100">Workshops</h1>
+          <p className="mt-1 text-sm text-gray-600 dark:text-gray-300">
             Manage all workshop environments
           </p>
         </div>
@@ -95,11 +95,11 @@ const WorkshopList: React.FC = () => {
             <div key={i} className="card">
               <div className="card-body">
                 <div className="animate-pulse">
-                  <div className="h-4 bg-gray-200 rounded w-1/4 mb-2"></div>
-                  <div className="h-3 bg-gray-200 rounded w-3/4 mb-4"></div>
+                  <div className="h-4 bg-gray-200 dark:bg-gray-600 rounded w-1/4 mb-2"></div>
+                  <div className="h-3 bg-gray-200 dark:bg-gray-600 rounded w-3/4 mb-4"></div>
                   <div className="flex space-x-4">
-                    <div className="h-3 bg-gray-200 rounded w-20"></div>
-                    <div className="h-3 bg-gray-200 rounded w-20"></div>
+                    <div className="h-3 bg-gray-200 dark:bg-gray-600 rounded w-20"></div>
+                    <div className="h-3 bg-gray-200 dark:bg-gray-600 rounded w-20"></div>
                   </div>
                 </div>
               </div>
@@ -114,8 +114,8 @@ const WorkshopList: React.FC = () => {
     return (
       <div className="animate-fade-in">
         <div className="mb-8">
-          <h1 className="text-2xl font-bold text-gray-900">Workshops</h1>
-          <p className="mt-1 text-sm text-gray-600">
+          <h1 className="text-2xl font-bold text-gray-900 dark:text-gray-100">Workshops</h1>
+          <p className="mt-1 text-sm text-gray-600 dark:text-gray-300">
             Manage all workshop environments
           </p>
         </div>
@@ -123,9 +123,9 @@ const WorkshopList: React.FC = () => {
         <div className="card">
           <div className="card-body">
             <div className="text-center py-8">
-              <XMarkIcon className="mx-auto h-12 w-12 text-danger-400" />
-              <h3 className="mt-2 text-sm font-medium text-gray-900">Error loading workshops</h3>
-              <p className="mt-1 text-sm text-gray-500">
+              <XMarkIcon className="mx-auto h-12 w-12 text-danger-400 dark:text-danger-300" />
+              <h3 className="mt-2 text-sm font-medium text-gray-900 dark:text-gray-100">Error loading workshops</h3>
+              <p className="mt-1 text-sm text-gray-500 dark:text-gray-300">
                 There was a problem loading the workshop data.
               </p>
               <div className="mt-6">
@@ -149,8 +149,8 @@ const WorkshopList: React.FC = () => {
       <div className="mb-8">
         <div className="flex justify-between items-center">
           <div>
-            <h1 className="text-2xl font-bold text-gray-900">Workshops</h1>
-            <p className="mt-1 text-sm text-gray-600">
+            <h1 className="text-2xl font-bold text-gray-900 dark:text-gray-100">Workshops</h1>
+            <p className="mt-1 text-sm text-gray-600 dark:text-gray-300">
               Manage all workshop environments
             </p>
           </div>
@@ -173,7 +173,7 @@ const WorkshopList: React.FC = () => {
             placeholder="Search workshops..."
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
-            className="block w-full pl-10 pr-3 py-2 border border-gray-300 rounded-md leading-5 bg-white placeholder-gray-500 focus:outline-none focus:placeholder-gray-400 focus:ring-1 focus:ring-primary-500 focus:border-primary-500 sm:text-sm"
+            className="block w-full pl-10 pr-3 py-2 border border-gray-300 dark:border-slate-600 rounded-md leading-5 bg-white dark:bg-slate-700 placeholder-gray-500 dark:placeholder-gray-400 dark:text-gray-100 focus:outline-none focus:placeholder-gray-400 focus:ring-1 focus:ring-primary-500 focus:border-primary-500 sm:text-sm"
           />
         </div>
         
@@ -182,7 +182,7 @@ const WorkshopList: React.FC = () => {
           <select
             value={statusFilter}
             onChange={(e) => setStatusFilter(e.target.value as WorkshopStatus | 'all')}
-            className="block w-full pl-10 pr-8 py-2 border border-gray-300 rounded-md leading-5 bg-white focus:outline-none focus:ring-1 focus:ring-primary-500 focus:border-primary-500 sm:text-sm"
+            className="block w-full pl-10 pr-8 py-2 border border-gray-300 dark:border-slate-600 rounded-md leading-5 bg-white dark:bg-slate-700 dark:text-gray-100 focus:outline-none focus:ring-1 focus:ring-primary-500 focus:border-primary-500 sm:text-sm"
           >
             <option value="all">All Status</option>
             <option value="planning">Planning</option>
@@ -202,9 +202,9 @@ const WorkshopList: React.FC = () => {
             <div className="text-center py-8">
               {workshops.length === 0 ? (
                 <>
-                  <CalendarIcon className="mx-auto h-12 w-12 text-gray-400" />
-                  <h3 className="mt-2 text-sm font-medium text-gray-900">No workshops</h3>
-                  <p className="mt-1 text-sm text-gray-500">
+                  <CalendarIcon className="mx-auto h-12 w-12 text-gray-400 dark:text-gray-300" />
+                  <h3 className="mt-2 text-sm font-medium text-gray-900 dark:text-gray-100">No workshops</h3>
+                  <p className="mt-1 text-sm text-gray-500 dark:text-gray-300">
                     Get started by creating a new workshop.
                   </p>
                   <div className="mt-6">
@@ -219,9 +219,9 @@ const WorkshopList: React.FC = () => {
                 </>
               ) : (
                 <>
-                  <MagnifyingGlassIcon className="mx-auto h-12 w-12 text-gray-400" />
-                  <h3 className="mt-2 text-sm font-medium text-gray-900">No workshops found</h3>
-                  <p className="mt-1 text-sm text-gray-500">
+                  <MagnifyingGlassIcon className="mx-auto h-12 w-12 text-gray-400 dark:text-gray-300" />
+                  <h3 className="mt-2 text-sm font-medium text-gray-900 dark:text-gray-100">No workshops found</h3>
+                  <p className="mt-1 text-sm text-gray-500 dark:text-gray-300">
                     Try adjusting your search or filter criteria.
                   </p>
                 </>
@@ -302,7 +302,7 @@ const WorkshopList: React.FC = () => {
                     <button
                       ref={(el) => { triggerRefs.current[workshop.id] = el; }}
                       onClick={() => setShowActions(showActions === workshop.id ? null : workshop.id)}
-                      className="p-2 text-gray-400 hover:text-gray-600 rounded-md hover:bg-gray-50"
+                      className="p-2 text-gray-400 dark:text-gray-300 hover:text-gray-600 dark:hover:text-gray-100 rounded-md hover:bg-gray-50 dark:hover:bg-slate-700"
                     >
                       <EllipsisVerticalIcon className="h-5 w-5" />
                     </button>

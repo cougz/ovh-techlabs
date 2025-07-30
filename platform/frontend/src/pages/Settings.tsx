@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { settingsApi } from '../services/api';
+import useNotificationDialog from '../hooks/useNotificationDialog';
 
 const Settings: React.FC = () => {
   const [settings, setSettings] = useState({
@@ -13,6 +14,9 @@ const Settings: React.FC = () => {
   });
   
   const [isLoading, setIsLoading] = useState(false);
+  
+  // Notification dialog
+  const { NotificationDialog, showNotification } = useNotificationDialog();
 
   // Load settings from localStorage and API on mount
   useEffect(() => {
@@ -64,10 +68,18 @@ const Settings: React.FC = () => {
       await settingsApi.setLoginPrefixConfig(loginPrefixConfig);
       
       // Show success confirmation
-      alert('Settings saved successfully!');
+      showNotification({
+        title: 'Settings Saved',
+        message: 'Settings saved successfully!',
+        type: 'success'
+      });
     } catch (error) {
       console.error('Failed to save settings:', error);
-      alert('Failed to save settings: ' + (error instanceof Error ? error.message : 'Unknown error'));
+      showNotification({
+        title: 'Save Failed',
+        message: 'Failed to save settings: ' + (error instanceof Error ? error.message : 'Unknown error'),
+        type: 'error'
+      });
     } finally {
       setIsLoading(false);
     }
@@ -180,6 +192,9 @@ const Settings: React.FC = () => {
           </button>
         </div>
       </div>
+
+      {/* Notification Dialog */}
+      <NotificationDialog />
     </div>
   );
 };
