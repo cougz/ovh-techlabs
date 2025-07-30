@@ -101,9 +101,9 @@ const Dashboard: React.FC = () => {
   }
 
   return (
-    <div className="animate-fade-in border-2 border-transparent dark:bg-slate-900 dark:border-slate-700 dark:shadow-2xl">
+    <div className="animate-fade-in">
       {/* Header */}
-      <div className="mb-8 border-b-2 border-transparent dark:border-slate-600">
+      <div className="mb-8">
         <div className="flex justify-between items-center">
           <div>
             <h1 className="text-2xl font-bold text-gray-900 dark:text-gray-100">Dashboard</h1>
@@ -218,12 +218,12 @@ const Dashboard: React.FC = () => {
                                 />
                               </div>
                             </div>
-                            <div className="text-sm text-gray-500 dark:text-gray-400">
+                            <div className="text-sm text-gray-600 dark:text-gray-300">
                               {workshop.attendee_count} attendees • {workshop.active_attendees} active
                             </div>
                           </div>
                         </div>
-                        <div className="text-sm text-gray-500 dark:text-gray-400">
+                        <div className="text-sm text-gray-600 dark:text-gray-300">
                           {new Date(workshop.start_date).toLocaleDateString()}
                         </div>
                       </div>
