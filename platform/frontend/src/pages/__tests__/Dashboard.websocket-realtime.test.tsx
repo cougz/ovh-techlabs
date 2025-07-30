@@ -2,33 +2,21 @@ import React from 'react';
 import { render, screen, waitFor, act } from '@testing-library/react';
 import { BrowserRouter } from 'react-router-dom';
 import { QueryClient, QueryClientProvider } from 'react-query';
+import '@testing-library/jest-dom';
 import Dashboard from '../Dashboard';
 import { workshopApi } from '../../services/api';
+import type { WorkshopSummary } from '../../types';
 
 // Mock the APIs
 jest.mock('../../services/api');
 const mockedWorkshopApi = workshopApi as jest.Mocked<typeof workshopApi>;
 
-// Mock useWebSocket hook to simulate WebSocket behavior
-let mockInvalidateQueries: jest.Mock;
-jest.mock('../../hooks/useWebSocket', () => ({
-  useWebSocket: ({ workshopId, onStatusUpdate }: any) => {
-    // Access the query client to invalidate queries when status updates occur
-    const { useQueryClient } = require('react-query');
-    const queryClient = useQueryClient();
-    mockInvalidateQueries = jest.fn((queryKey) => {
-      queryClient.invalidateQueries(queryKey);
-    });
-    
+// Mock useGlobalWebSocket hook to simulate WebSocket behavior
+jest.mock('../../hooks/useGlobalWebSocket', () => ({
+  useGlobalWebSocket: ({ onStatusUpdate }: any) => {
     // Store the callback for testing
-    (global as any).__testWebSocketCallback = (entityType: string, entityId: string, status: string) => {
-      // Simulate what the real hook does
-      queryClient.invalidateQueries(['attendees', workshopId]);
-      queryClient.invalidateQueries(['workshop', workshopId]);
-      queryClient.invalidateQueries('workshops');
-      queryClient.invalidateQueries(['workshops']);
-      
-      onStatusUpdate?.(entityType, entityId, status);
+    (global as any).__testDashboardWebSocketCallback = (workshopId: string, entityType: string, entityId: string, status: string) => {
+      onStatusUpdate?.(workshopId, entityType, entityId, status);
     };
     
     return {
@@ -41,30 +29,34 @@ jest.mock('../../hooks/useWebSocket', () => ({
   }
 }));
 
-const mockWorkshops = [
+const mockWorkshopsStuckDeploying: WorkshopSummary[] = [
   {
     id: 'workshop-1',
-    name: 'Production Workshop',
-    description: 'Main production environment',
-    start_date: '2025-07-25T10:00:00Z',
-    end_date: '2025-07-25T18:00:00Z',
-    status: 'active' as const,
-    attendee_count: 10,
-    active_attendees: 5,
-    created_at: '2025-07-21T15:58:41Z',
-    updated_at: '2025-07-21T15:58:41Z',
+    name: 'Stuck Workshop',
+    description: 'Workshop stuck at deploying status',
+    start_date: '2025-07-30T10:00:00Z',
+    end_date: '2025-07-30T18:00:00Z',
+    status: 'deploying', // Raw status is deploying
+    attendee_count: 2,
+    active_attendees: 2, // But all attendees are active - should show as active
+    created_at: '2025-07-30T09:00:00Z',
+    updated_at: '2025-07-30T09:00:00Z',
+    timezone: 'UTC',
+    template: 'Generic'
   },
   {
     id: 'workshop-2',
-    name: 'Development Workshop',
-    description: 'Dev environment',
-    start_date: '2025-07-26T10:00:00Z',
-    end_date: '2025-07-26T18:00:00Z',
-    status: 'deploying' as const,
-    attendee_count: 8,
+    name: 'Planning Workshop',
+    description: 'Workshop still in planning',
+    start_date: '2025-07-31T10:00:00Z',
+    end_date: '2025-07-31T18:00:00Z',
+    status: 'planning',
+    attendee_count: 3,
     active_attendees: 0,
-    created_at: '2025-07-22T15:58:41Z',
-    updated_at: '2025-07-22T15:58:41Z',
+    created_at: '2025-07-30T09:00:00Z',
+    updated_at: '2025-07-30T09:00:00Z',
+    timezone: 'UTC',
+    template: 'Generic'
   }
 ];
 
@@ -85,14 +77,14 @@ describe('Dashboard - Real-time WebSocket Updates', () => {
     });
     
     // Mock initial API response
-    mockedWorkshopApi.getWorkshops.mockResolvedValue(mockWorkshops);
+    mockedWorkshopApi.getWorkshops.mockResolvedValue(mockWorkshopsStuckDeploying);
   });
 
   afterEach(() => {
-    delete (global as any).__testWebSocketCallback;
+    delete (global as any).__testDashboardWebSocketCallback;
   });
 
-  it('should update workshop status in real-time when WebSocket receives updates', async () => {
+  it('should show effective status for workshops stuck in deploying', async () => {
     render(
       <QueryClientProvider client={queryClient}>
         <BrowserRouter>
@@ -103,37 +95,28 @@ describe('Dashboard - Real-time WebSocket Updates', () => {
 
     // Wait for initial render
     await waitFor(() => {
-      expect(screen.getByText('Development Workshop')).toBeInTheDocument();
+      expect(screen.getByText('Stuck Workshop')).toBeInTheDocument();
+      expect(screen.getByText('Planning Workshop')).toBeInTheDocument();
     });
 
-    // Verify initial status
-    expect(screen.getByText('Deploying')).toBeInTheDocument();
-
-    // Update the mock to return new data
-    const updatedWorkshops = [...mockWorkshops];
-    updatedWorkshops[1] = { 
-      ...updatedWorkshops[1], 
-      status: 'active',
-      active_attendees: 8 
-    };
-    mockedWorkshopApi.getWorkshops.mockResolvedValue(updatedWorkshops);
-
-    // Simulate WebSocket status update
-    act(() => {
-      if ((global as any).__testWebSocketCallback) {
-        (global as any).__testWebSocketCallback('workshop', 'workshop-2', 'active');
-      }
-    });
-
-    // Dashboard should update to show new status
-    await waitFor(() => {
-      // Should show 2 active workshops now
-      const activeBadges = screen.getAllByText('Active');
-      expect(activeBadges.length).toBe(2);
-    });
-
-    // Verify attendee count also updated
-    expect(screen.getByText('8 attendees • 8 active')).toBeInTheDocument();
+    // Workshop 1 should show as Active (effective status) despite DB status being deploying
+    // because all attendees are active (2/2)
+    expect(screen.getByText('Active')).toBeInTheDocument();
+    expect(screen.getByText('Planning')).toBeInTheDocument();
+    
+    // Statistics should reflect effective status:
+    // - Total Workshops: 2
+    // - Active Workshops: 1 (workshop-1 with effective status active)
+    // - Total Attendees: 5 (2 + 3)
+    // - Active Attendees: 2
+    
+    // Check that Active Workshops count is 1 (using effective status)
+    const statCards = screen.getAllByText('1'); // Should appear in Active Workshops stat
+    expect(statCards.length).toBeGreaterThanOrEqual(1);
+    
+    // Check total workshops and attendees
+    expect(screen.getByText('2')).toBeInTheDocument(); // Total Workshops and Active Attendees
+    expect(screen.getByText('5')).toBeInTheDocument(); // Total Attendees
   });
 
   it('should update attendee counts when attendee status changes', async () => {

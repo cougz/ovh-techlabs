@@ -34,7 +34,7 @@ const Dashboard: React.FC = () => {
   // Calculate statistics
   const stats = React.useMemo(() => {
     const totalWorkshops = workshops.length;
-    const activeWorkshops = workshops.filter(w => w.status === 'active').length;
+    const activeWorkshops = workshops.filter(w => getEffectiveStatus(w) === 'active').length;
     const totalAttendees = workshops.reduce((sum, w) => sum + w.attendee_count, 0);
     const activeAttendees = workshops.reduce((sum, w) => sum + w.active_attendees, 0);
 
