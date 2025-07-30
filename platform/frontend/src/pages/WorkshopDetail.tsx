@@ -14,8 +14,7 @@ import {
   ArrowLeftIcon,
   PencilIcon,
   DocumentArrowDownIcon,
-  XMarkIcon,
-  ExclamationTriangleIcon
+  XMarkIcon
 } from '@heroicons/react/24/outline';
 
 import { workshopApi, attendeeApi, deploymentApi } from '../services/api';
