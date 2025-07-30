@@ -14,7 +14,6 @@ import { CreateWorkshopRequest, CreateAttendeeRequest, WorkshopTemplateName } fr
 import TemplateDropdown from '../components/TemplateDropdown';
 import { parseCsvAttendees, validateAttendeeData, CsvAttendeeData, CsvParseError, CsvValidationError } from '../utils/csvImport';
 import { WorkshopTemplateNameSchema } from '../types/schemas';
-import { z } from 'zod';
 
 interface FormData {
   name: string;
