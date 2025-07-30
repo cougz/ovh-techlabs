@@ -8,7 +8,7 @@ import type { WorkshopTemplate } from '../../types';
 const mockTemplates: WorkshopTemplate[] = [
   {
     name: 'Generic',
-    description: 'Generic template that creates only OVH Public Cloud Project',
+    description: 'Creates: IAM User, IAM Policy, OVHcloud Public Cloud Project',
     resources: ['ovh_public_cloud_project'],
     is_active: true,
     resource_config: {
@@ -53,7 +53,7 @@ describe('TemplateDropdown', () => {
     it('should display template description as help text', () => {
       render(<TemplateDropdown {...defaultProps} />);
       
-      expect(screen.getByText(/generic template that creates only ovh public cloud project/i)).toBeInTheDocument();
+      expect(screen.getByText(/creates: iam user, iam policy, ovhcloud public cloud project/i)).toBeInTheDocument();
     });
   });
 
@@ -87,7 +87,7 @@ describe('TemplateDropdown', () => {
         />
       );
       
-      expect(screen.getByText(/generic template that creates only ovh public cloud project/i)).toBeInTheDocument();
+      expect(screen.getByText(/creates: iam user, iam policy, ovhcloud public cloud project/i)).toBeInTheDocument();
       
       // Simulate template change
       rerender(
@@ -179,7 +179,7 @@ describe('TemplateDropdown', () => {
       const describedBy = dropdown.getAttribute('aria-describedby');
       
       expect(describedBy).toBeTruthy();
-      expect(screen.getByText(/generic template that creates only ovh public cloud project/i)).toHaveAttribute('id', describedBy);
+      expect(screen.getByText(/creates: iam user, iam policy, ovhcloud public cloud project/i)).toHaveAttribute('id', describedBy);
     });
   });
 
@@ -203,7 +203,7 @@ describe('TemplateDropdown', () => {
       const templateWithResources: WorkshopTemplate[] = [
         {
           name: 'Generic',
-          description: 'Generic template that creates only OVH Public Cloud Project',
+          description: 'Creates: IAM User, IAM Policy, OVHcloud Public Cloud Project',
           resources: ['ovh_public_cloud_project', 'user', 'policy'],
           is_active: true
         }

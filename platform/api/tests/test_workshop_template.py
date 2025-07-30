@@ -68,7 +68,7 @@ class TestWorkshopTemplate:
         generic_template = template_service.get_template("Generic")
         
         assert generic_template.name == "Generic"
-        assert generic_template.description == "Generic template that creates only OVH Public Cloud Project"
+        assert generic_template.description == "Creates: IAM User, IAM Policy, OVHcloud Public Cloud Project"
         assert generic_template.resources == ["ovh_public_cloud_project"]
         assert generic_template.is_active is True
     
@@ -80,7 +80,7 @@ class TestWorkshopTemplate:
         
         assert len(templates) == 1
         assert templates[0].name == "Generic"
-        assert templates[0].description == "Generic template that creates only OVH Public Cloud Project"
+        assert templates[0].description == "Creates: IAM User, IAM Policy, OVHcloud Public Cloud Project"
         assert templates[0].resources == ["ovh_public_cloud_project"]
     
     def test_should_get_template_resources(self):

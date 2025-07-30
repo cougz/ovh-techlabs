@@ -20,7 +20,7 @@ jest.mock('react-router-dom', () => ({
 const mockTemplates = [
   {
     name: 'Generic',
-    description: 'Generic template that creates only OVH Public Cloud Project',
+    description: 'Creates: IAM User, IAM Policy, OVHcloud Public Cloud Project',
     resources: ['ovh_public_cloud_project'],
     is_active: true,
     resource_config: {
@@ -99,7 +99,7 @@ describe('CreateWorkshop Template Integration', () => {
       renderCreateWorkshop();
       
       await waitFor(() => {
-        expect(screen.getByText(/generic template that creates only ovh public cloud project/i)).toBeInTheDocument();
+        expect(screen.getByText(/creates: iam user, iam policy, ovhcloud public cloud project/i)).toBeInTheDocument();
       });
     });
   });

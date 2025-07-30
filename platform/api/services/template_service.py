@@ -9,7 +9,7 @@ class TemplateService:
         self._templates = {
             "Generic": WorkshopTemplate(
                 name="Generic",
-                description="Generic template that creates only OVH Public Cloud Project",
+                description="Creates: IAM User, IAM Policy, OVHcloud Public Cloud Project",
                 resources=["ovh_public_cloud_project"],
                 is_active=True,
                 resource_config={
