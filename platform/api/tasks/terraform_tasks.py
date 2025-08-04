@@ -459,13 +459,26 @@ def deploy_workshop_attendees_sequential(self, workshop_id: str):
                 attendee.status = 'failed'
                 db.commit()
         
-        # Update workshop status using enhanced service to fix any inconsistencies
+        # Update workshop status based on deployment results
+        # Since we're completing a deployment lifecycle, we need to explicitly set the status
+        # The WorkshopStatusService won't override 'deploying' status as it's a lifecycle state
         from services.workshop_status_fix import WorkshopStatusFixService
-        new_status = WorkshopStatusFixService.force_workshop_status_update(workshop_id, db)
         
-        # Fallback to original service if enhanced service fails
-        if not new_status:
-            new_status = WorkshopStatusService.update_workshop_status_from_attendees(workshop_id, db)
+        # Calculate what the status should be based on attendees
+        attendee_statuses = []
+        attendees_after = db.query(Attendee).filter(Attendee.workshop_id == UUID(workshop_id)).all()
+        for attendee in attendees_after:
+            attendee_statuses.append(attendee.status)
+        
+        # Calculate the appropriate status based on attendee states
+        calculated_status = WorkshopStatusService.calculate_workshop_status_from_attendees(attendee_statuses)
+        
+        # Explicitly set the workshop status since we're completing the deployment lifecycle
+        workshop.status = calculated_status
+        db.commit()
+        new_status = calculated_status
+        
+        logger.info(f"Workshop {workshop_id} deployment completed. Status updated from 'deploying' to '{new_status}'")
         
         # Create appropriate status message
         if failed_count == 0:
