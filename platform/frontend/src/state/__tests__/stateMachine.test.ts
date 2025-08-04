@@ -60,8 +60,8 @@ describe('State Machine', () => {
         result = validateStateTransition('completed', 'active', workshopContext);
         expect(result.valid).toBe(false);
 
-        // deleted -> any state (terminal state)
-        result = validateStateTransition('deleted', 'planning', workshopContext);
+        // completed -> any invalid state (completed is terminal except for deleting)
+        result = validateStateTransition('completed', 'planning', workshopContext);
         expect(result.valid).toBe(false);
       });
 
@@ -211,10 +211,10 @@ describe('State Machine', () => {
 
   describe('getNextPossibleStates', () => {
     it('should return correct next states for workshop', () => {
-      expect(getNextPossibleStates('planning', 'workshop')).toEqual(['deploying', 'deleted']);
+      expect(getNextPossibleStates('planning', 'workshop')).toEqual(['deploying', 'deleting']);
       expect(getNextPossibleStates('deploying', 'workshop')).toEqual(['active', 'failed', 'planning']);
       expect(getNextPossibleStates('active', 'workshop')).toEqual(['deleting', 'completed', 'failed']);
-      expect(getNextPossibleStates('deleted', 'workshop')).toEqual([]);
+      expect(getNextPossibleStates('completed', 'workshop')).toEqual(['deleting']);
     });
 
     it('should return correct next states for attendee', () => {
@@ -227,9 +227,13 @@ describe('State Machine', () => {
 
   describe('isTerminalState', () => {
     it('should identify terminal states', () => {
-      expect(isTerminalState('deleted', 'workshop')).toBe(true);
-      expect(isTerminalState('deleted', 'attendee')).toBe(true);
+      // For workshops, there are no truly terminal states as per the state machine rules
+      expect(isTerminalState('completed', 'workshop')).toBe(false); // can transition to deleting
+      expect(isTerminalState('deleting', 'workshop')).toBe(false); // can transition to completed or failed
       expect(isTerminalState('planning', 'workshop')).toBe(false);
+      
+      // For attendees, 'deleted' is terminal
+      expect(isTerminalState('deleted', 'attendee')).toBe(true);
       expect(isTerminalState('active', 'attendee')).toBe(false);
     });
   });
