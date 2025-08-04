@@ -63,7 +63,8 @@ const mockAttendees: Attendee[] = [
     status: 'active',
     workshop_id: 'workshop-123',
     created_at: '2025-07-30T09:00:00Z',
-    updated_at: '2025-07-30T09:00:00Z'
+    updated_at: '2025-07-30T09:00:00Z',
+    deletion_scheduled_at: '2025-07-30T20:00:00Z'
   },
   { 
     id: 'attendee-2', 
@@ -288,6 +289,37 @@ describe('WorkshopDetail Cleanup Schedule Presentation', () => {
       // Cleanup card should use blue informational color (not warning amber)
       const cleanupCard = screen.getByText('Cleanup Schedule').closest('.card');
       expect(cleanupCard?.querySelector('.text-blue-500')).toBeInTheDocument();
+    });
+  });
+
+  describe('Attendee Deletion Date Styling', () => {
+    it('should display attendee deletion dates with informational styling instead of warning amber', async () => {
+      renderWorkshopDetail();
+      
+      // Wait for workshop data to load
+      await screen.findByText('Test Workshop');
+      
+      // Find the attendee with deletion scheduled
+      const deletionText = screen.getByText(/Will be deleted on/);
+      expect(deletionText).toBeInTheDocument();
+      
+      // Should use blue informational styling instead of amber warning
+      expect(deletionText).toHaveClass('text-blue-600', 'dark:text-blue-400');
+      expect(deletionText).not.toHaveClass('text-amber-600');
+      expect(deletionText).not.toHaveClass('dark:text-amber-400');
+    });
+
+    it('should maintain readable text size for deletion dates', async () => {
+      renderWorkshopDetail();
+      
+      // Wait for workshop data to load
+      await screen.findByText('Test Workshop');
+      
+      // Find the attendee deletion date text
+      const deletionText = screen.getByText(/Will be deleted on/);
+      
+      // Should use small text size for secondary information
+      expect(deletionText).toHaveClass('text-xs');
     });
   });
 });

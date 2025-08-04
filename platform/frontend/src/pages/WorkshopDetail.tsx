@@ -910,7 +910,7 @@ const WorkshopDetail: React.FC = () => {
                         
                         {/* Deletion scheduled date */}
                         {attendee.deletion_scheduled_at && (
-                          <p className="text-xs text-amber-600 dark:text-amber-400">
+                          <p className="text-xs text-blue-600 dark:text-blue-400">
                             Will be deleted on {formatDeletionDate(attendee.deletion_scheduled_at)}
                           </p>
                         )}
